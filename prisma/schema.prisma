@@ -1,0 +1,205 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // uses connection pooling
+}
+
+model payments {
+  id                Int                        @id @default(autoincrement())
+  shop_id           Int?
+  subscription_plan payments_subscription_plan
+  amount            Decimal                    @db.Decimal(10, 2)
+  currency          String?                    @default("USD") @db.VarChar(10)
+  payment_date      DateTime?                  @default(now())
+  next_payment_date DateTime?
+  payment_status    payments_payment_status?   @default(paid)
+  payment_method    payments_payment_method?
+  created_at        DateTime?                  @default(now())
+  updated_at        DateTime?                  @default(now())
+  notes             String?                    @db.Text
+  shops             shops?                     @relation(fields: [shop_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payments_ibfk_1")
+
+  @@index([shop_id], map: "payments_shop_id_index")
+}
+
+model issues {
+  id                 Int     @id @default(autoincrement())
+  shop_id            Int?
+  product_id         Int     @unique
+  shopify_product_id String  @unique
+  issuesCount        Json?
+  product            product @relation(fields: [product_id], references: [id], onDelete: Cascade)
+}
+
+model product {
+  id               Int              @id @default(autoincrement())
+  shopify_id       String           @unique
+  shop_id          Int?
+  title            String?
+  description      String?
+  seo_title        String?
+  seo_description  String?
+  date_created     DateTime?        @default(now())
+  last_checked     DateTime?
+  product_status   products_status? @default(new)
+  feedback         Json?
+  issuesCategories Json?
+  feedback_issues  Int?
+  ai_correction    Boolean?         @default(false)
+  previous_data    Json?
+  updated_by       String?
+  handle           String?
+  category_id      String?
+  category_name    String?
+  tags             Json?
+  product_type     String?
+  featured_image   Json?
+  issues           issues?
+  shops            shops?           @relation(fields: [shop_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "products_ibfk_1")
+  productHistories productHistory[]
+
+  @@index([shop_id], map: "products_shop_id_index")
+}
+
+model productHistory {
+  id                Int              @id @default(autoincrement())
+  product_id        Int
+  shopify_id        String
+  shop_id           Int?
+  title             String?
+  description       String?
+  seo_title         String?
+  seo_description   String?
+  date_created      DateTime?        @default(now())
+  last_checked      DateTime?
+  product_status    products_status? @default(new)
+  feedback          Json?
+  issuesCategories  Json?
+  feedback_issues   Int?
+  ai_correction     Boolean?         @default(false)
+  updated_by        Json?
+  handle            String?
+  category_id       String?
+  category_name     String?
+  tags              Json?
+  product_type      String?
+  featured_image    Json?
+  newTitle          String?
+  newDescription    String?
+  newTags           Json?
+  newSeoTitle       String?
+  newCategoryName   String?
+  newProductType    String?
+  newSeoDescription String?
+  product           product          @relation(fields: [product_id], references: [id], onDelete: Cascade)
+
+  @@index([product_id], map: "productHistory_product_id_index")
+}
+
+model shops {
+  id                        Int                             @id @default(autoincrement())
+  shopify_shop_id           String                          @unique
+  shop_name                 String
+  owner_name                String?
+  email                     String?
+  planId                    Int
+  api_access_token          String?
+  store_currency            String?
+  store_locale              String?
+  date_added                DateTime?                       @default(now())
+  last_sync                 DateTime?
+  status                    shops_status?                   @default(ACTIVE)
+  notes                     String?
+  created_at                DateTime?                       @default(now())
+  updated_at                DateTime?                       @default(now())
+  shop_url                  String?
+  total_products            Int?                            @default(0)
+  country                   String?
+  timezone                  String?
+  subscription_renewal_date DateTime?
+  preferred_contact_method  shops_preferred_contact_method?
+  phone                     String?
+  credit                    Int                             @default(100)
+  needResync                Boolean                         @default(true)
+  payments                  payments[]
+  products                  product[]
+  Plan                      plan                            @relation(fields: [planId], references: [id])
+
+  @@index([shopify_shop_id], map: "shops_shopify_shop_id_index")
+  @@index([email], map: "shops_email_index")
+  @@index([shop_url], map: "shops_shop_url_index")
+}
+
+model plan {
+  id            Int      @id @default(autoincrement())
+  name          String
+  price         Float
+  description   String?
+  productNumber Int      @default(3)
+  credits       Int      @default(100)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  shops         shops[]
+}
+
+model session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+}
+
+enum shops_status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum shops_preferred_contact_method {
+  EMAIL
+  PHONE
+  NONE
+}
+
+enum payments_subscription_plan {
+  basic
+  professional
+  advanced
+  enterprise
+}
+
+enum payments_payment_status {
+  paid
+  pending
+  failed
+  refunded
+}
+
+enum payments_payment_method {
+  credit_card
+  paypal
+  bank_transfer
+  shopify_billing
+}
+
+enum products_status {
+  new
+  processed
+  updated
+  skipped
+  archived
+}
