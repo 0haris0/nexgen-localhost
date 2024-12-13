@@ -36,7 +36,16 @@ import { fetchShopQuery } from "../utils/shopData.js";
 import { handleErrorResponse } from "../utils/errorHandler.js";
 import { generateProductData } from "../models/ai.js";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import type { Product } from "@shopify/shopify-api/dist/ts/rest/admin/2022-10/product";
+import type { product } from "@prisma/client";
+
+interface ProductState {
+  products: product[];
+}
+
+interface Action {
+  type: string;
+  payload: product | product[];
+}
 
 // Define action types
 const ACTIONS = {
@@ -47,37 +56,37 @@ const ACTIONS = {
 };
 
 // Reducer function
-function productReducer(state, action) {
+function productReducer(state: ProductState, action: Action) {
   switch (action.type) {
     case ACTIONS.SET_PRODUCTS:
       return {
         ...state,
-        products: action.payload,
+        products: action.payload as product[],
       };
     case ACTIONS.ENHANCE_PRODUCT:
       return {
         ...state,
-        products: state.products.map((product) =>
-          product.id === action.payload.id ? action.payload : product,
+        products: state.products.map((singleProduct) =>
+          singleProduct.id === (action.payload as product).id
+            ? (action.payload as product)
+            : singleProduct,
         ),
       };
     case ACTIONS.APPROVE_PRODUCT:
       return {
         ...state,
-        products: state.products.map((product) =>
-          product.id === action.payload
-            ? {
-                ...product,
-                approved: true,
-              }
-            : product,
+        products: state.products.map((singleProduct) =>
+          singleProduct.id === (action.payload as product).id
+            ? { ...singleProduct, approved: true }
+            : singleProduct,
         ),
       };
     case ACTIONS.REJECT_PRODUCT:
       return {
         ...state,
         products: state.products.filter(
-          (product) => product.id !== action.payload.id,
+          (singleProduct) =>
+            singleProduct.id !== (action.payload as product).id,
         ),
       };
     default:
@@ -85,7 +94,8 @@ function productReducer(state, action) {
   }
 }
 
-const initialState = { products: [] };
+const initialState: ProductState = { products: [] };
+
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   try {
@@ -93,27 +103,36 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
     if (!storeData) {
       new Error("No data returned from the GraphQL API.");
-    }
+      // }
 
-    const { shop, subscription } = storeData;
-    console.log(storeData);
-    const enhancedProducts = await fetchEnhancedProducts(shop.id, false);
-    // Check each product's enhanced data in the database
-    const productsWithEnhancements = await Promise.all(
-      enhancedProducts.map(async (product) => {
-        const enhancedData = await getSingleProductFromHistory(product.id);
-        return enhancedData ? { ...product, ...enhancedData } : product;
-      }),
-    );
-    console.log(productsWithEnhancements, "prodenh");
-    return {
-      data: productsWithEnhancements,
-      shop: shop,
-      subscription: subscription,
-    };
+      // const { shop, subscription } = storeData;
+      console.log(storeData);
+      const enhancedProducts = await fetchEnhancedProducts(shop.id, false);
+      // Check each product's enhanced data in the database
+      const productsWithEnhancements = await Promise.all(
+        enhancedProducts.map(async (product) => {
+          const enhancedData = await getSingleProductFromHistory(product.id);
+          return enhancedData ? { ...product, ...enhancedData } : product;
+        }),
+      );
+      console.log(productsWithEnhancements, "prodenh");
+      return {
+        success: true,
+        data: productsWithEnhancements,
+        shop: shop,
+        subscription: subscription,
+      };
+    }
   } catch (error) {
-    console.error(error.message);
-    return handleErrorResponse(error.message);
+    if (error instanceof Error) {
+      console.error(error.message);
+      return handleErrorResponse(error.message);
+    } else {
+      return {
+        success: false,
+        error: "An error occurred while fetching issues and products",
+      };
+    }
   }
 };
 
@@ -124,20 +143,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const productData = formData.get("product");
   const shopData = formData.get("shop");
 
-  const product = JSON.parse(productData);
-  const shop = JSON.parse(shopData);
+  const product = JSON.parse(productData as string);
+  const shop = JSON.parse(shopData as string);
   try {
     if (!productData) {
       throw new Error("No product data found in form submission.");
     }
-    let response;
     //console.log(actionType);
     if (actionType === "enhance") {
       // Call the saveProductHistory function to store it in the database
       const isSaved = await saveProductHistory(product);
       const status = await updateStatus(product.id);
+      if (!status) {
+        throw new Error("Error updating status");
+      }
       let amount = shop.credit - 100;
       const removeCredit = await updateCredit(shop.shopify_shop_id, amount);
+
       return {
         success: true,
         saved: isSaved,
@@ -153,13 +175,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       };
     }
   } catch (error) {
-    console.error("Error saving product history:", error);
-    return handleErrorResponse(error.message);
+    if (error instanceof Error) {
+      console.error(error.message);
+      return handleErrorResponse(error.message);
+    } else {
+      return {
+        success: false,
+        error: "An error occurred while processing the action",
+      };
+    }
   }
 };
 
+type LoaderData = {
+  data: product[];
+  shop: any;
+  subscription: any;
+};
+
 export function ReviewEnhancements() {
-  const { data, shop, subscription } = useLoaderData();
+  const { data, shop, subscription } = useLoaderData<LoaderData>();
   const fetcher = useFetcher();
   const [state, dispatch] = useReducer(productReducer, initialState);
   const [loading, setLoading] = useState(false);
@@ -171,15 +206,15 @@ export function ReviewEnhancements() {
     // Initialize state only once with loader data
     dispatch({
       type: ACTIONS.SET_PRODUCTS,
-      payload: data || [],
+      payload: data,
     });
   }, [data]);
 
   useEffect(() => {
     async function checkAndImprove() {
       if (fetcher.state === "idle" && data && state.products) {
-        const productsNeedingEnhancement = state.products.filter(
-          (product) =>
+        /*const productsNeedingEnhancement = state.products.filter(
+          (product: productHistory) =>
             !product.newTitle ||
             !product.newDescription ||
             !product.newTags ||
@@ -187,7 +222,7 @@ export function ReviewEnhancements() {
             !product.newCategoryName ||
             !product.newProductType ||
             !product.newSeoDescription,
-        );
+        );*/
         setApproveButtonLoading(false);
       }
     }
@@ -195,14 +230,14 @@ export function ReviewEnhancements() {
     checkAndImprove();
   }, [data, fetcher.state, state.products]);
 
-  const handleProducts = async (products: Product) => {
+  /*const handleProducts = async (products: Product) => {
     for (const product of products) {
       await enhanceProductWithAI(product);
     }
-  };
+  };*/
 
-  const enhanceProductWithAI = async (product: Product) => {
-    let enhancedProduct = product;
+  const enhanceProductWithAI = async (singleProduct: product) => {
+    let enhancedProduct = singleProduct;
     setEnhanceButtonLoading(true);
     if (
       !subscription ||
@@ -218,7 +253,7 @@ export function ReviewEnhancements() {
       setEnhanceButtonLoading(false);
       return;
     }
-    const cleanedJsonString = await generateProductData(product);
+    const cleanedJsonString = await generateProductData(singleProduct);
     try {
       const parsedEnhancedData = JSON.parse(cleanedJsonString);
       enhancedProduct = { ...enhancedProduct, ...parsedEnhancedData };
@@ -241,7 +276,7 @@ export function ReviewEnhancements() {
     setEnhanceButtonLoading(false);
   };
 
-  const handleApprove = (product) => {
+  const handleApprove = (product: product) => {
     setApproveButtonLoading(true);
     dispatch({
       type: ACTIONS.APPROVE_PRODUCT,
@@ -253,14 +288,18 @@ export function ReviewEnhancements() {
     fetcher.submit(formData, { method: "post" });
   };
 
-  const handleReject = (product) => {
+  const handleReject = (singleProduct: product) => {
+    if (!singleProduct?.id) {
+      console.error("Invalid product data for rejection");
+      return;
+    }
     const formData = new FormData();
-    formData.append("product", JSON.stringify(product));
+    formData.append("product", JSON.stringify(singleProduct));
     formData.append("actionType", "reject");
     fetcher.submit(formData, { method: "post" });
     dispatch({
       type: ACTIONS.REJECT_PRODUCT,
-      payload: product,
+      payload: singleProduct,
     });
   };
 
@@ -268,13 +307,15 @@ export function ReviewEnhancements() {
     <Page title="Review AI Enhancements" fullWidth>
       <Layout>
         {state.products.length > 0 ? (
-          state.products.map((product) => (
-            <Layout.Section key={product.id} variant={"fullWidth"}>
-              <Card title={product.title} sectioned>
+          state.products.map((singleProduct: product) => (
+            <Layout.Section key={singleProduct.id} variant={"fullWidth"}>
+              <Card>
                 <BlockStack gap="150">
-                  <Text variant="headingMd">{product.title}</Text>
+                  <Text as={"p"} variant="headingMd">
+                    {singleProduct.title}
+                  </Text>
 
-                  <Enhancement key={product.id} product={product} />
+                  <Enhancement key={singleProduct.id} product={singleProduct} />
 
                   <Divider borderWidth="025" borderColor={"border-brand"} />
                   <InlineStack align={"space-between"}>
@@ -292,7 +333,7 @@ export function ReviewEnhancements() {
                           size={!isEnhanced ? "large" : "medium"}
                           loading={enhanceButtonLoading}
                           onClick={async () => {
-                            await enhanceProductWithAI(product);
+                            await enhanceProductWithAI(singleProduct);
                           }}
                           icon={RefreshIcon}
                         >
@@ -301,23 +342,25 @@ export function ReviewEnhancements() {
                       </Tooltip>
 
                       <Button
-                        onClick={() => handleReject(product)}
+                        onClick={() => handleReject(singleProduct)}
                         icon={XSmallIcon}
                         variant={"secondary"}
                         tone={"critical"}
                         disabled={
-                          !isEnhanced && product.product_status !== "processed"
+                          !isEnhanced &&
+                          singleProduct.product_status !== "processed"
                         }
                       >
                         Reject
                       </Button>
                       <Button
-                        onClick={() => handleApprove(product)}
+                        onClick={() => handleApprove(singleProduct)}
                         loading={approveButtonLoading}
                         icon={CheckSmallIcon}
                         variant={"primary"}
                         disabled={
-                          !isEnhanced && product.product_status !== "processed"
+                          !isEnhanced &&
+                          singleProduct.product_status !== "processed"
                         }
                       >
                         Approve

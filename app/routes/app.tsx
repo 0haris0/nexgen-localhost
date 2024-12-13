@@ -9,7 +9,8 @@ import {authenticate} from '../shopify.server';
 import {ShopProvider} from '../utils/ShopContext.js';
 import {Analytics} from '@vercel/analytics/remix';
 import {SpeedInsights} from '@vercel/speed-insights/remix';
-import {LoaderFunctionArgs} from "@remix-run/node";
+import type { LoaderFunctionArgs } from "@remix-run/node";
+
 
 // Remix will automatically handle the routes based on the file structure
 
@@ -26,45 +27,44 @@ export const links = () => [
   },
 ];
 
-export const loader = async ({request}: LoaderFunctionArgs) => {
-  await authenticate.admin(request);
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
 
-  return {apiKey: process.env.SHOPIFY_API_KEY || ''};
+  return { apiKey: process.env.SHOPIFY_API_KEY || "" };
 };
 
-export function App() {
-  const {apiKey} = useLoaderData();
+export default function App() {
+  const { apiKey } = useLoaderData() as { apiKey: string };
   return (
     <AppProvider
       isEmbeddedApp
       apiKey={apiKey}
       i18n={{
         ResourceList: {
-          sortingLabel: 'Sort by',
-          defaultItemSingular: 'item',
-          defaultItemPlural: 'items',
-          showing: 'Showing {itemsCount} {resource}',
+          sortingLabel: "Sort by",
+          defaultItemSingular: "item",
+          defaultItemPlural: "items",
+          showing: "Showing {itemsCount} {resource}",
           Item: {
-            viewItem: 'View details for {itemName}',
+            viewItem: "View details for {itemName}",
           },
         },
         Common: {
-          checkbox: 'checkbox',
+          checkbox: "checkbox",
         },
       }}
     >
       <NavMenu>
-        <a href="/app" rel="home">Dashboard</a>
+        <a href="/app" rel="home">
+          Dashboard
+        </a>
         <a href="/app/products">Products</a>
         <a href="/app/regenerate">AI Enhancement</a>
         <a href="/app/settings">Settings</a>
       </NavMenu>
-      {/* Outlet will render the current nested route component */}
-      <ShopProvider children={Outlet}>
-        <Outlet/>
-      </ShopProvider>
-      <Analytics/>
-      <SpeedInsights/>
+      <ShopProvider children={<Outlet />}></ShopProvider>
+      <Analytics />
+      <SpeedInsights />
     </AppProvider>
   );
 }
@@ -72,10 +72,10 @@ export function App() {
 // Shopify needs Remix to catch some thrown responses, so that their headers are included in the response.
 export function ErrorBoundary() {
   const error = useRouteError();
-  console.error('Error in route:', error);
+  console.error("Error in route:", error);
   return boundary.error(error);
 }
 
-export const headers = (headersArgs) => {
+export const headers = (headersArgs: any) => {
   return boundary.headers(headersArgs);
 };

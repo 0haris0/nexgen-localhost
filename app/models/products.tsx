@@ -1,8 +1,6 @@
-import dbServer from "../db.server";
+import type { Prisma, product, productHistory } from "@prisma/client"; // Ensure Prisma types are imported
+import dbServer from "../db.server"; // Ensure this is the proper dbServer import
 import { handleApiError } from "../utils/handleApiError";
-import type { product, productHistory } from "@prisma/client";
-import type { ProductStatus } from "@shopify/app-bridge-core/actions/ResourcePicker";
-import type { Product } from "@shopify/shopify-api/dist/ts/rest/admin/2022-10/product";
 
 export async function saveProduct(product: product) {
   if (!product.shopify_id) {
@@ -155,30 +153,28 @@ export async function getSingleProductFromHistory(productId: number) {
   }
 }
 
-interface filteringByShopId {
+interface FilteringOptions {
+  selected?: number;
+  searchTerm?: string;
+  order_by: keyof Prisma.productOrderByWithRelationInput; // Enforce order_by to match Prisma keys
+  sort: Prisma.SortOrder; // 'asc' | 'desc'
+  page: number;
+  display: number;
+} // Import error handler
+
+interface FilteringByShopId {
   shop_id: number;
-  options: {
-    page: number;
-    display: number;
-    order_by: string;
-    sort: string;
-    selected: number;
-    searchTerm: string | null;
-  };
+  options: FilteringOptions;
 }
 
+// Function to get products by shop_id
 export async function getProductsByShopId({
   shop_id,
   options,
-}: filteringByShopId) {
+}: FilteringByShopId) {
   try {
     // Setup base query conditions
-    let whereQuery: {
-      shop_id: number;
-      ai_correction?: boolean;
-      product_status?: ProductStatus;
-      title?: { contains: string };
-    } = {
+    const whereQuery: Prisma.productWhereInput = {
       shop_id,
     };
 
@@ -188,19 +184,20 @@ export async function getProductsByShopId({
     } else if (options.selected === 2) {
       whereQuery.product_status = "processed";
       whereQuery.ai_correction = true;
-    } else {
-      // Apply search term if provided
-      // Apply search term if provided, without case-insensitive mode
-      if (typeof options.searchTerm === "string" && options.searchTerm.trim()) {
-        whereQuery.title = {
-          contains: options.searchTerm.trim(),
-        };
-      }
     }
+
+    // Apply search term filter
+    if (typeof options.searchTerm === "string" && options.searchTerm.trim()) {
+      whereQuery.title = {
+        contains: options.searchTerm.trim(),
+      };
+    }
+
     // Validate and parse order_by with a fallback for invalid inputs
-    const orderByQuery = {
+    const orderByQuery: Prisma.productOrderByWithRelationInput = {
       [options.order_by]: options.sort,
     };
+
     // Fetch total count with the where query
     const totalCount = await dbServer.product.count({
       where: whereQuery,
@@ -218,13 +215,13 @@ export async function getProductsByShopId({
       result,
       totalCount,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching products:", error.message);
     return handleApiError(error, error.message);
   }
 }
 
-export async function getProductsById(productIds) {
+export async function getProductsById(productIds: Array<number>) {
   const result = await dbServer.product.findMany({
     where: {
       id: { in: productIds },
@@ -248,14 +245,23 @@ export async function countProductsByShopID(shop_id: number) {
   }
 }
 
-export async function countIssues(shop_id: number) {
+type CountIssuesResult = {
+  success: boolean;
+  data: Array<{
+    feedback_issues: string | null;
+    _count: { _all: number };
+  }>;
+  error?: string;
+};
+
+export async function countIssues(shop_id: number): Promise<CountIssuesResult> {
   // Validate input
   if (!shop_id) {
     throw new Error("Shop ID is required to count issues.");
   }
 
   try {
-    return await dbServer.product.groupBy({
+    const result = await dbServer.product.groupBy({
       by: ["feedback_issues"], // Group by feedback issues
       where: { shop_id }, // Filter by the provided shop ID
       _count: {
@@ -265,22 +271,35 @@ export async function countIssues(shop_id: number) {
         feedback_issues: "desc", // Order by feedback issues in descending order
       },
     });
+
+    // Ensure feedback_issues is of type string | null
+    const formattedResult = result.map((item) => ({
+      feedback_issues: item.feedback_issues?.toString() || null,
+      _count: item._count,
+    }));
+
+    return {
+      success: true,
+      data: formattedResult,
+    };
   } catch (error) {
     if (error instanceof Error) {
-      return handleApiError(error, error.message);
+      return {
+        success: false,
+        data: [],
+        error: error.message,
+      };
     } else {
       return {
         success: false,
+        data: [],
         error: "An error occurred while counting issues.",
       };
     }
   }
 }
 
-export async function updateAiCorrection(
-  productIds: Array<Product.id>,
-  status: boolean,
-) {
+export async function updateAiCorrection(productIds: Array<number>, status: boolean) {
   if (!Array.isArray(productIds)) {
     throw new Error("Not array");
   }
@@ -305,13 +324,18 @@ export async function getProductsForExport() {
       : product.tags;
 
     // Expand feedback issues: If feedback issues are an array of objects, map each key as an individual field
-    const feedbackIssues = product.feedbackIssues || []; // Default to empty array if feedbackIssues is undefined
-    const feedbackFields = feedbackIssues.reduce((acc, issue, index) => {
-      // Prefix each issue field to avoid key conflicts (e.g., issue_1, issue_2)
-      acc[`issue_${index + 1}_message`] = issue.message || "N/A";
-      acc[`issue_${index + 1}_type`] = issue.type || "N/A";
-      return acc;
-    }, {});
+    const feedbackIssues = Array.isArray(product.feedback_issues)
+      ? product.feedback_issues
+      : [];
+    const feedbackFields = feedbackIssues.reduce(
+      (acc: any, issue: any, index: number) => {
+        // Prefix each issue field to avoid key conflicts (e.g., issue_1, issue_2)
+        acc[`issue_${index + 1}_message`] = issue.message || "N/A";
+        acc[`issue_${index + 1}_type`] = issue.type || "N/A";
+        return acc;
+      },
+      {},
+    );
 
     // Return the transformed product object
     return {
@@ -342,9 +366,17 @@ export async function fetchEnhancedProducts(
   return products;
 }
 
+interface Enhancements {
+  title?: string;
+  description?: string;
+  tags?: string[];
+  seoKeywords?: string;
+  categorySuggestion?: string;
+}
+
 export async function applyEnhancement(
   productId: number,
-  enhancements: object,
+  enhancements: Enhancements,
 ) {
   // Destructure the enhancements into specific fields to update
   const { title, description, tags, seoKeywords, categorySuggestion } =

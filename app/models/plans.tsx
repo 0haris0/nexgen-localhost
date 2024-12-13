@@ -1,6 +1,6 @@
 import dbServer from "../db.server";
 
-export const getPlan = async (planName) => {
+export const getPlan = async (planName: string) => {
   let planId;
   switch (planName) {
     case "Trial":

@@ -1,12 +1,12 @@
 // Helper function to update product details on Shopify and save to DB
 import dbServer from "../db.server.js";
-import { handleErrorResponse } from "./errorHandler.tsx";
 import { saveProduct } from "../models/products.js";
 import { lastSync, shopId } from "../models/shop.js";
 import { saveIssue } from "../models/issue.js";
-import { handleApiError } from "./handleApiError.tsx";
+import { handleApiError } from "./handleApiError";
+import type { Product, ProductEdge } from "../types/admin.types";
 
-async function updateProduct(admin, productData, actionType) {
+async function updateProduct(admin: any, productData: any, actionType: any) {
   // GraphQL mutation for updating product details
   const mutation = `
     mutation updateProduct($input: ProductInput!) {
@@ -59,7 +59,7 @@ async function updateProduct(admin, productData, actionType) {
       updatedProductData = {
         id: productData.id,
         shopify_id: productData.shopify_id,
-        product_status: "archived",
+        product_status: "ARCHIVED",
         ai_correction: false,
       };
       const updatedProduct = await dbServer.product.update({
@@ -95,12 +95,11 @@ async function updateProduct(admin, productData, actionType) {
       seo_description: newProduct.seo.description,
       tags: newProduct.tags,
       product_type: newProduct.productType,
-      featured_image:
-        {
-          url: newProduct.images.edges[0]?.node.src,
-        } || null,
+      featured_image: {
+        url: newProduct.images.edges[0]?.node.src || null,
+      },
       last_checked: new Date(),
-      product_status: "processed",
+      product_status: "PROCESSED",
       ai_correction: false,
       feedback: productData.feedback,
       feedback_issues: productData.feedback_issues,
@@ -123,19 +122,51 @@ async function updateProduct(admin, productData, actionType) {
         updatedProduct,
       };
     } catch (error) {
-      console.error("Error updating product in DB:", error);
-      return handleApiError(error, error.message);
+      if (error instanceof Error) {
+        console.error("Error updating product in DB:", error);
+        return handleApiError(error, error.message);
+      }
     }
   } catch (error) {
-    console.error("Error updating product:", error);
-    return handleApiError(error, "Product update failed: ", error.message);
+    if (error instanceof Error) {
+      console.error("Error updating product:", error);
+      return handleApiError(error, error.message);
+    }
   }
 }
 
 export default updateProduct;
-export const analyzeProduct = (product) => {
-  let feedback = [];
-  let issueCount = {
+
+type issueCount = {
+  seoTitle: 0;
+  seoDescription: 0;
+  featuredMedia: 0;
+  title: 0;
+  variants: 0;
+  publishedAt: 0;
+  tags: 0;
+  collections: 0;
+  productType: 0;
+  vendor: 0;
+  tracksInventory: 0;
+};
+type feedback = {
+  issue: string;
+  severity: string;
+  message: string;
+};
+
+type analyzedProduct = {
+  success: boolean;
+  feedbacks: Array<feedback>;
+  issuesCount: issueCount;
+  error?: string;
+};
+export const analyzeProductFromShopify = (
+  singleProduct: Product,
+): analyzedProduct => {
+  let feedbackList = [];
+  let issueCount: issueCount = {
     seoTitle: 0,
     seoDescription: 0,
     featuredMedia: 0,
@@ -146,188 +177,173 @@ export const analyzeProduct = (product) => {
     collections: 0,
     productType: 0,
     vendor: 0,
-    weight: 0,
-    trackInventory: 0,
+    tracksInventory: 0,
   };
   try {
-    // Check if SEO title is empty
-    if (!product.seo?.title || product.seo.title.trim() === "") {
-      issueCount.seoTitle = issueCount.seoTitle + 1;
-      feedback.push({
+    if (!singleProduct.seo?.title || singleProduct.seo.title.trim() === "") {
+      issueCount.seoTitle += 1;
+      feedbackList.push({
         issue: "SEO Title",
         severity: "high",
         message: "SEO title is missing.",
       });
     }
 
-    // Check if SEO description is empty
-    if (!product.seo?.description || product.seo.description.trim() === "") {
-      issueCount.seoDescription = issueCount.seoDescription + 1;
-      feedback.push({
+    if (
+      !singleProduct.seo?.description ||
+      singleProduct.seo.description.trim() === ""
+    ) {
+      issueCount.seoDescription += 1;
+      feedbackList.push({
         issue: "SEO Description",
         severity: "medium",
         message: "SEO description is missing.",
       });
     }
 
-    // Check if product has featured media (image, video, or 3D model)
-    if (!product.featuredMedia || !product.featuredMedia.preview?.image?.url) {
-      issueCount.featuredMedia = issueCount.featuredMedia + 1;
-      feedback.push({
+    if (
+      !singleProduct.featuredMedia ||
+      !singleProduct.featuredMedia.preview?.image?.url
+    ) {
+      issueCount.featuredMedia += 1;
+      feedbackList.push({
         issue: "Media",
         severity: "high",
         message: "Product has no featured media.",
       });
     }
 
-    // Check if product title is missing
-    if (!product.title || product.title.trim() === "") {
-      issueCount.title = issueCount.title + 1;
-      feedback.push({
+    if (!singleProduct.title || singleProduct.title.trim() === "") {
+      issueCount.title += 1;
+      feedbackList.push({
         issue: "Title",
         severity: "high",
         message: "Product title is missing.",
       });
     }
 
-    // Check if product description is missing or too short
     if (
-      !product.descriptionHtml ||
-      product.descriptionHtml.trim().length < 50
+      !singleProduct.descriptionHtml ||
+      singleProduct.descriptionHtml.trim().length < 50
     ) {
-      feedback.push({
+      feedbackList.push({
         issue: "Description",
         severity: "medium",
         message: "Product description is missing or too short.",
       });
     }
 
-    // Check if product has at least one variant
-    if (!product.variants?.edges || product.variants.edges.length === 0) {
-      issueCount.variants = issueCount.variants + 1;
-      feedback.push({
+    if (
+      !singleProduct.variants?.edges ||
+      singleProduct.variants.edges.length === 0
+    ) {
+      issueCount.variants += 1;
+      feedbackList.push({
         issue: "Variants",
         severity: "high",
         message: "Product has no variants.",
       });
     }
 
-    // Check if product is published on any sales channels
-    if (!product.publishedAt) {
-      issueCount.publishedAt = issueCount.publishedAt + 1;
-      feedback.push({
+    if (!singleProduct.publishedAt) {
+      issueCount.publishedAt += 1;
+      feedbackList.push({
         issue: "Publication",
         severity: "medium",
         message: "Product is not published on any sales channels.",
       });
     }
 
-    // Check if product price is set for each variant
-    const priceMissing = product.variants?.edges.some(
+    const priceMissing = singleProduct.variants?.edges.some(
       (variant) => !variant.node?.price || parseFloat(variant.node.price) === 0,
     );
     if (priceMissing) {
-      feedback.push({
+      feedbackList.push({
         issue: "Price",
         severity: "high",
         message: "Product price is missing or set to zero.",
       });
     }
 
-    // Check if product tags exist
-    if (!product.tags || product.tags.length === 0) {
-      issueCount.tags = issueCount.tags + 1;
-      feedback.push({
+    if (!singleProduct.tags || singleProduct.tags.length === 0) {
+      issueCount.tags += 1;
+      feedbackList.push({
         issue: "Tags",
         severity: "low",
         message: "Product has no tags.",
       });
     }
 
-    // Check if product is visible in collections
-    if (!product.collections?.edges || product.collections.edges.length === 0) {
-      issueCount.collections = issueCount.collections + 1;
-      feedback.push({
+    if (
+      !singleProduct.collections?.edges ||
+      singleProduct.collections.edges.length === 0
+    ) {
+      issueCount.collections += 1;
+      feedbackList.push({
         issue: "Collections",
         severity: "low",
         message: "Product is not part of any collection.",
       });
     }
 
-    // Check if product has proper product type
-    if (!product.productType || product.productType.trim() === "") {
-      issueCount.productType = issueCount.productType + 1;
-      feedback.push({
+    if (!singleProduct.productType || singleProduct.productType.trim() === "") {
+      issueCount.productType += 1;
+      feedbackList.push({
         issue: "Product Type",
         severity: "medium",
         message: "Product type is missing.",
       });
     }
 
-    // Check if product vendor is set
-    if (!product.vendor || product.vendor.trim() === "") {
-      issueCount.vendor = issueCount.vendor + 1;
-      feedback.push({
+    if (!singleProduct.vendor || singleProduct.vendor.trim() === "") {
+      issueCount.vendor += 1;
+      feedbackList.push({
         issue: "Vendor",
         severity: "medium",
         message: "Product vendor is missing.",
       });
     }
 
-    // Check if product weight is set (useful for shipping)
-    if (!product.weight || product.weight === 0) {
-      issueCount.weight = issueCount.weight + 1;
-      feedback.push({
-        issue: "Weight",
-        severity: "low",
-        message: "Product weight is missing.",
-      });
-    }
-
-    // Check if product has proper inventory tracking enabled
-    if (!product.trackInventory) {
-      issueCount.trackInventory = issueCount.trackInventory + 1;
-      feedback.push({
+    if (!singleProduct.tracksInventory) {
+      issueCount.tracksInventory += 1;
+      feedbackList.push({
         issue: "Inventory Tracking",
         severity: "medium",
         message: "Product inventory is not being tracked.",
       });
     }
 
-    // Check if product has a valid status
     if (
-      !product.status ||
-      !["ACTIVE", "ARCHIVED", "DRAFT"].includes(product.status)
+      !singleProduct.status ||
+      !["ACTIVE", "ARCHIVED", "DRAFT"].includes(singleProduct.status)
     ) {
-      feedback.push({
+      feedbackList.push({
         issue: "Status",
         severity: "high",
         message: "Product status is invalid.",
       });
     }
 
-    // Default feedback message if product is fully optimized
-    if (feedback.length === 0) {
-      feedback.push({ message: "Product is fully optimized." });
-    }
+    return {
+      success: true,
+      feedbacks: feedbackList,
+      issuesCount: issueCount,
+    };
   } catch (error) {
-    console.error("Error analyzing product:", e);
-    throw new Error(error.message);
+    console.error("Error analyzing product:", error);
+    return {
+      success: false,
+      error: "Product analyzed finished unsuccessfully",
+      feedbacks: feedbackList || [],
+      issuesCount: issueCount || 0,
+    };
   }
-
-  // Return both feedback and issue counts
-  return {
-    feedback,
-    issueCount,
-  };
 };
-export const fetchProductsQuery = async (admin) => {
+export const fetchProductsQuery = async (admin: any) => {
   try {
     // Fetch products using Shopify GraphQL
-    const storeData = await admin
-      .graphql(
-        `
-        #graphql
+    const response = await admin.graphql(
+      `#graphql
         query getProducts {
           shop { id name }
           products(first: 250, query: "status:ACTIVE") {
@@ -346,16 +362,24 @@ export const fetchProductsQuery = async (admin) => {
           productsCount(query: "status:ACTIVE") { count }
         }
       `,
-      )
-      .then((result) => result.json())
-      .then((data) => data.data);
+    );
+    const result = await response.json();
 
-    const productEdges = storeData.products.edges;
-    const shopifyId = storeData.shop.id;
+    if (!result || result.errors) {
+      console.error("GraphQL Errors:", result.errors);
+      throw new Error("GraphQL query failed.");
+    }
+
+    if (!result.data) {
+      throw new Error("GraphQL response is empty.");
+    }
+    const productEdges = result.data.products.edges as Array<ProductEdge>;
+    const shopifyId = await shopId(storeData.shop.id);
     const shopIdVal = await shopId(shopifyId);
 
     for (const { node: product } of productEdges) {
-      const { feedback, issueCount } = analyzeProduct(product);
+      const { feedbacks: feedback, issuesCount: issueCount } =
+        analyzeProductFromShopify(product);
       // Save the analyzed product data
       const newProduct = await saveProduct({
         shopify_id: product.id,
@@ -389,11 +413,14 @@ export const fetchProductsQuery = async (admin) => {
       productsCount: storeData.productsCount.count,
     };
   } catch (error) {
-    console.error(error.message);
-    handleErrorResponse(error.message);
+    if (error instanceof Error) {
+      console.error(error.message);
+      return handleApiError(error, error.message);
+    } else {
+      return {
+        success: false,
+        error: "An unexpected error occurred while fetching products.",
+      };
+    }
   }
-  return {
-    success: false,
-    productsCount: 0,
-  };
 };

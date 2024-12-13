@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "e0ca33cf902315426479ef62e16cf227"
-application_url = "https://slovenia-cook-cup-live.trycloudflare.com"
+application_url = "https://giants-teaches-consciousness-flood.trycloudflare.com"
 embedded = true
 name = "nexgen-localhost"
 handle = "nexgen-localhost"
@@ -20,13 +20,13 @@ api_version = "2024-10"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "read_analytics,read_inventory,read_orders,read_pixels,read_product_feeds,read_product_listings,read_products,read_publications,read_purchase_options,read_returns,write_product_feeds,write_product_listings,write_products,write_publications"
 
 [auth]
 redirect_urls = [
-  "https://slovenia-cook-cup-live.trycloudflare.com/auth/callback",
-  "https://slovenia-cook-cup-live.trycloudflare.com/auth/shopify/callback",
-  "https://slovenia-cook-cup-live.trycloudflare.com/api/auth/callback"
+  "https://giants-teaches-consciousness-flood.trycloudflare.com/auth/callback",
+  "https://giants-teaches-consciousness-flood.trycloudflare.com/auth/shopify/callback",
+  "https://giants-teaches-consciousness-flood.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -1,18 +1,17 @@
-import {handleApiError} from './handleApiError.tsx';
-import {saveShop} from '../models/shop.js';
+import { handleApiError } from "./handleApiError";
+import { saveShop } from "../models/shop.js"; // Fetches the shop ID and API key
 
 // Fetches the shop ID and API key
-export const shopifyShopId  = async (admin) =>
-  {
+export const shopifyShopId = async (admin: any) => {
   try {
     // Execute the GraphQL request to get the shop's ID
-    const response       = await admin.graphql(`#query { shop { id } }`);
+    const response = await admin.graphql(`#query { shop { id } }`);
     const parsedResponse = await response.json();
 
     if (!parsedResponse.data?.shop) {
       return {
         success: false,
-        error  : 'No shop or products found.',
+        error: "No shop or products found.",
       };
     }
 
@@ -20,12 +19,11 @@ export const shopifyShopId  = async (admin) =>
     // Return the shop ID and API key if found
   } catch (e: unknown) {
     // Handle any errors using the handleApiError function
-    return handleApiError(e, 'Error loading shop data');
+    return handleApiError(e, "Error loading shop data");
   }
-  };
+};
 // GraphQL Queries
-export const fetchShopQuery = async (admin) =>
-  {
+export const fetchShopQuery = async (admin: any) => {
   const query = `
     #graphql
     query getShopData {
@@ -56,37 +54,63 @@ export const fetchShopQuery = async (admin) =>
   let response;
   try {
     const result = await admin.graphql(query);
-    response     = (await result.json()).data;
+    response = (await result.json()).data;
   } catch (error) {
-    console.error('GraphQL Request Error:', error);
-    return handleApiError(error, error.message);
-
+    if (error instanceof Error) {
+      console.error(error.message);
+      return handleApiError(error, error.message);
+    } else {
+      console.error("An error occurred while fetching shop data");
+      return {
+        success: false,
+        error: "An error occurred while fetching shop data",
+      };
+    }
   }
 
-  const shop                = response.shop;
-  const productCount        = response.productsCount?.count || 0;
-  const activeSubscriptions = response.currentAppInstallation?.activeSubscriptions ||
-    [];
+  const shop = response.shop;
+  const productCount = response.productsCount?.count || 0;
+  const activeSubscriptions =
+    response.currentAppInstallation?.activeSubscriptions || [];
 
-  const planMapping = {
-    'Trial'            : 1,
-    'Basic plan'       : 2,
-    'Professional plan': 3,
-    'Enterprise plan'  : 4,
-  };
-  const planId      = planMapping[activeSubscriptions[0]?.name] || 1;
-
+  const planMapping = [
+    {
+      name: "Trial plan",
+      id: 1,
+    },
+    {
+      name: "Basic plan",
+      id: 2,
+    },
+    {
+      name: "Professional plan",
+      id: 3,
+    },
+    {
+      name: "Enterprise plan",
+      id: 4,
+    },
+  ];
+  //TODO: FIX THIS
+  // const planId = planMapping[activeSubscriptions[0]?.name] || 1;
+  const planId = 1;
   try {
     const savedStoreData = await saveShop(shop, productCount, planId);
 
     return {
-      success      : true,
-      shop         : savedStoreData,
-      subscription : activeSubscriptions,
+      success: true,
+      shop: savedStoreData,
+      subscription: activeSubscriptions,
       productNumber: productCount,
     };
   } catch (error) {
-    console.error('Save Shop or Issues Processing Error:', error.message);
-    return handleApiError(error, error.message);
+    if (error instanceof Error) {
+      return handleApiError(error, error.message);
+    } else {
+      return {
+        success: false,
+        error: "An error occurred while fetching product from history",
+      };
+    }
   }
-  };
+};

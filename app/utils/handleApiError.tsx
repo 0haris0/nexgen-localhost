@@ -1,7 +1,7 @@
 // Utility function for error handling
 export type ErrorHandler = {
-  error: true;
-  message: string;
+  success: false;
+  error: string;
 };
 
 export const handleApiError = (e: unknown, message: string): ErrorHandler => {
@@ -10,15 +10,15 @@ export const handleApiError = (e: unknown, message: string): ErrorHandler => {
     const errorMessage = e.message || "Unknown error";
     console.error(`${message}:`, errorMessage, e.stack || "");
     return {
-      error: true,
-      message: `${message}: ${errorMessage}`,
+      success: false,
+      error: `${message}: ${errorMessage}`,
     };
   }
 
   // Handle cases where the error is not an instance of Error
   console.error(`${message}:`, e);
   return {
-    error: true,
-    message: `${message}: ${String(e)}`, // Convert non-Error objects to string
+    success: false,
+    error: `${message}: ${String(e)}`, // Convert non-Error objects to string
   };
 };

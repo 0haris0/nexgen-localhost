@@ -1,5 +1,5 @@
 // errorHandler.js
-export const handleError = (error, context = "") => {
+export const andleError = (error, context = "") => {
   // Log the error for debugging (can be sent to a logging service)
   console.error(`Error in ${context}:`, error);
 

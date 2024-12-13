@@ -1,28 +1,35 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
+  Badge,
+  BlockStack,
   Button,
+  Card,
+  Collapsible,
+  Divider,
+  Icon,
   IndexTable,
   InlineStack,
+  List,
+  Tag,
   Text,
   Thumbnail,
-  Collapsible,
-  List,
-  Card,
-  Badge,
-  Icon,
-  Divider,
-  BlockStack,
-  Tag,
 } from "@shopify/polaris";
 import {
-  ArrowUpIcon,
   ArrowDownIcon,
+  ArrowUpIcon,
   XCircleIcon,
 } from "@shopify/polaris-icons";
 
-import { FeedbackIssue } from "./feedbackIssue.tsx";
+import { FeedbackIssue } from "./feedbackIssue";
+import type { Product } from "../globals";
 
-export default function SingleRow(props) {
+interface SingleRowProps {
+  product: Product;
+  position: number;
+  selectedResources: number[];
+}
+
+export default function SingleRow(props: SingleRowProps) {
   const {
     id,
     title,
@@ -30,7 +37,6 @@ export default function SingleRow(props) {
     feedback_issues,
     featured_image,
     tags,
-    shopify_id,
     ai_correction,
   } = props.product;
   const [open, setOpen] = useState(false);
@@ -39,7 +45,7 @@ export default function SingleRow(props) {
   const handleToggle = useCallback(() => setOpen((open) => !open), []);
 
   // Function to handle severity levels and return the correct Badge tone
-  const handleSeverity = (severity) => {
+  const handleSeverity = (severity: string): string => {
     switch (severity.toLowerCase()) {
       case "high":
         return "critical"; // Polaris' 'critical' tone for high severity
@@ -65,16 +71,16 @@ export default function SingleRow(props) {
         <IndexTable.Cell>
           <InlineStack gap="200" blockAlign="center" wrap={false} align="start">
             <Thumbnail
-              width={45}
+              size="extraSmall"
               alt={title}
               source={featured_image.url || XCircleIcon}
             />
             <BlockStack gap="100">
-              <Text as="b" alignment="center">
+              <Text as="p" alignment="center">
                 {title.length > 75 ? title.slice(0, 75) + "..." : title}
               </Text>
               <InlineStack gap="100">
-                {tags.map((tag, key) => {
+                {tags.map((tag: string, key: number) => {
                   return (
                     <Tag key={key} disabled={true}>
                       {tag}
@@ -95,10 +101,10 @@ export default function SingleRow(props) {
               onClick={() => handleToggle}
             >
               <InlineStack align="center" gap="150">
-                <Text alignment="end" fontWeight="bold">
-                  {FeedbackIssue(feedback_issues)}
+                <Text as="span" alignment="end" fontWeight="bold">
+                  <FeedbackIssue IssuesNumber={feedback_issues} />
                 </Text>
-                <Text>{open ? "Hide issues" : "Display issues"}</Text>
+                <Text as="span">{open ? "Hide issues" : "Display issues"}</Text>
                 <Icon source={open ? ArrowUpIcon : ArrowDownIcon} />
               </InlineStack>
             </Button>
@@ -108,6 +114,7 @@ export default function SingleRow(props) {
 
       {/* Full-width expandable row with improved design */}
       <IndexTable.Row
+        id={`single-row-${id}`}
         rowType={"child"}
         disabled={true}
         position={0}
@@ -122,51 +129,38 @@ export default function SingleRow(props) {
               timingFunction: "ease-in-out",
             }}
           >
-            <Card sectioned subdued>
+            <Card>
               <BlockStack gap="150">
                 <InlineStack
-                  gap="small"
+                  gap="200"
                   blockAlign="stretch"
                   align={"space-between"}
                 >
-                  <Text variant="headingMd">Issues Details</Text>
-                  <Text variant="headingMd">Issues Severity</Text>
+                  <Text as={"span"} variant="headingMd">
+                    Issues Details
+                  </Text>
+                  <Text as={"span"} variant="headingMd">
+                    Issues Severity
+                  </Text>
                 </InlineStack>
                 <Divider borderWidth={"025"} borderColor={"border-brand"} />
 
-                <List
-                  type="bullet"
-                  spacing="tight"
-                  style={{ marginTop: "12px" }}
-                >
-                  {feedback.map((issue, key) => (
+                <List type="bullet" gap="extraTight">
+                  {feedback.map((issue: any, key: number) => (
                     <List.Item key={key}>
                       <InlineStack align={"space-between"}>
-                        <Text
-                          variant="headingSm"
-                          style={{
-                            marginLeft: "10px",
-                            fontWeight: "bold",
-                          }}
-                        >
+                        <Text variant="headingSm" as={"p"}>
                           {issue.issue}
                         </Text>
                         <Badge
-                          tone={handleSeverity(issue.severity)}
+                          tone={handleSeverity(issue.severity) as Tone}
                           size={"small"}
                           progress="complete"
                         >
                           {issue.severity.toUpperCase()}
                         </Badge>
                       </InlineStack>
-                      <Text
-                        variant="bodyMd"
-                        style={{
-                          marginLeft: "20px",
-                          display: "block",
-                          color: "#5c5f62",
-                        }}
-                      >
+                      <Text variant="bodyMd" as={"p"}>
                         {issue.message}
                       </Text>
                     </List.Item>

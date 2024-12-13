@@ -1,6 +1,7 @@
 // Converted to TypeScript
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {authenticate} from '../shopify.server.js';
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { authenticate } from "../shopify.server.js";
+import type { FilterInterface } from "@shopify/polaris";
 import {
   BlockStack,
   Button,
@@ -14,48 +15,87 @@ import {
   Text,
   Tooltip,
   useIndexResourceState,
-  useSetIndexFiltersMode
-} from '@shopify/polaris';
-import {useFetcher, useLoaderData, useNavigate, useSearchParams} from '@remix-run/react';
-import SingleRow from '../components/singleRow.js';
-import {countIssues, getProductsById, getProductsByShopId, updateAiCorrection} from '../models/products.js';
-import ProductCard from '../components/productCard.js';
-import {AutomationFilledIcon} from '@shopify/polaris-icons';
-import {useShop} from '../utils/ShopContext.js';
-import {handleErrorResponse} from '../utils/errorHandler.js';
-import {fetchShopQuery} from '../utils/shopData.js';
-import type {ActionFunctionArgs, LoaderFunctionArgs} from "@remix-run/node";
+  useSetIndexFiltersMode,
+} from "@shopify/polaris";
+import {
+  useFetcher,
+  useLoaderData,
+  useNavigate,
+  useSearchParams,
+} from "@remix-run/react";
+import {
+  countIssues,
+  getProductsById,
+  getProductsByShopId,
+  updateAiCorrection,
+} from "../models/products.js";
+import ProductCard from "../components/productCard.js";
+import { AutomationFilledIcon } from "@shopify/polaris-icons";
+import { useShop } from "../utils/ShopContext.js";
+import { handleErrorResponse } from "../utils/errorHandler.js";
+import { fetchShopQuery } from "../utils/shopData.js";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
+import type { product, shops } from "@prisma/client";
+import SingleRow from "../components/singleRow";
+import type { ActiveSubscriptions } from "@shopify/shopify-api";
+
+// Define types for `options` and loader response
+type OptionsType = {
+  page: number;
+  display: number;
+  order_by: string;
+  sort: string;
+  selected: number;
+  searchTerm: string | null;
+};
+
+type LoaderResponseType = {
+  data: any[]; // Adjust based on the product data type
+  shop: { id: string; [key: string]: any }; // Adjust fields as needed
+  count: number;
+  issueDropDown: number[]; // Array of issue counts
+  options: OptionsType;
+};
 
 // Loader function
-export const loader = async ({request}: LoaderFunctionArgs) => {
-  const {admin} = await authenticate.admin(request);
+export const loader = async ({
+  request,
+}: LoaderFunctionArgs): Promise<
+  | LoaderResponseType
+  | {
+      success: boolean;
+      error: string;
+    }
+> => {
+  const { admin } = await authenticate.admin(request);
 
   try {
     const storeData = await fetchShopQuery(admin);
     if (!storeData) {
-      throw new Error('No data returned from the GraphQL API.');
+      throw new Error("No data returned from the GraphQL API.");
     }
     const shopIdDB = storeData.shop.id;
     const url = new URL(request.url);
-    const options = {
-      page: parseInt(url.searchParams.get('page')) || 1,
-      display: parseInt(url.searchParams.get('display')) || 25,
-      order_by: url.searchParams.get('order_by') || 'feedback_issues',
-      sort: url.searchParams.get('sort') || 'desc',
-      selected: parseInt(url.searchParams.get('selected')) || 0,
-      searchTerm: url.searchParams.get('searchTerm') || null,
+    const options: OptionsType = {
+      page: parseInt(url.searchParams.get("page") || "1", 10),
+      display: parseInt(url.searchParams.get("display") || "25", 10),
+      order_by: url.searchParams.get("order_by") || "feedback_issues",
+      sort: url.searchParams.get("sort") || "desc",
+      selected: parseInt(url.searchParams.get("selected") || "0", 10),
+      searchTerm: url.searchParams.get("searchTerm") || null,
     };
 
-    const {
-      result,
-      totalCount,
-    } = await getProductsByShopId({shop_id : shopIdDB, options : options});
-
-    const issueCountSelection = (await countIssues(shopIdDB)).map(
-      (item) => item.feedback_issues,
+    const { result, totalCount } = await getProductsByShopId({
+      shop_id: shopIdDB,
+      options: options as OptionsType,
+    });
+    const countIssuesRes = await countIssues(shopIdDB);
+    const issueCountSelection = countIssuesRes.data.map(
+      (item: { feedback_issues: number }) => item.feedback_issues,
     );
 
     return {
+      success: true,
       data: result,
       shop: storeData.shop,
       count: totalCount,
@@ -63,93 +103,103 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
       options: options,
     };
   } catch (error) {
-    console.error('Error loading products or issues:', error.message);
-    return handleErrorResponse('Error loading products or issues:', error.message);
+    if (error instanceof Error) {
+      console.error("Error loading products or issues:", error.message);
+      return handleErrorResponse(error.message);
+    } else {
+      return {
+        success: false,
+        error: "An error occurred while fetching issues and products",
+      };
+    }
   }
 };
 
 // Action function
-export const action = async ({request}: ActionFunctionArgs) => {
-  const {admin} = await authenticate.admin(request);
+export const action = async ({ request }: ActionFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
-  const productIds = formData.get('selectedResources')?.split(',').map((id) => parseInt(id.trim()));
+  const productIds = formData
+    .get("selectedResources")
+    ?.split(",")
+    .map((id) => parseInt(id.trim()));
 
   try {
     await updateAiCorrection(productIds, true);
     const selected = await getProductsById(productIds);
-    return selected ? {selectedProduct: {selected}} : null;
+    return selected ? { selectedProduct: { selected } } : null;
   } catch (error) {
-    console.error('Error updating')
-    return handleErrorResponse('Error updating AI corrections', error.message);
+    if (error instanceof Error) {
+      console.error("Error updating product with AI:", error.message);
+      return handleErrorResponse(error.message);
+    } else {
+      return {
+        success: false,
+        error: "An error occurred while update with AI",
+      };
+    }
   }
 };
 
+type LoaderData = {
+  success: boolean;
+  data: Array<product> | [];
+  shop: shops | undefined;
+  subscription: ActiveSubscriptions | [];
+  count: number;
+  error?: string;
+  options: OptionsType;
+};
+
 // Main Component
-export function AppProducts() {
-  const {
-    data,
-    shop,
-    count,
-    error,
-    options,
-  } = useLoaderData();
+export default function AppProducts() {
+  const { success, data, shop, count, error, options } =
+    useLoaderData<LoaderData>();
   const fetcher = useFetcher();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [products, setProducts] = useState(true);
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const {
-    selectedResources,
-    handleSelectionChange,
-  } =
+  const [searchTerm, setSearchTerm] = useState("");
+  const { selectedResources, handleSelectionChange } =
     useIndexResourceState(data);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(
-    parseInt(searchParams.get('page')) || 1,
+    parseInt(searchParams.get("page") || "1", 10),
   );
 
   const [selected, setSelected] = useState(0);
   const [display, setDisplay] = useState(25);
-  const [orderBy, setOrderBy] = useState('feedback_issues');
-  const [sort, setSort] = useState('desc');
+  const [orderBy, setOrderBy] = useState("feedback_issues");
+  const [sort, setSort] = useState("desc");
 
-  const [sortSelected, setSortSelected] = useState(['feedback_issues desc']);
-  const {
-    mode,
-    setMode,
-  } = useSetIndexFiltersMode();
+  const [sortSelected, setSortSelected] = useState(["feedback_issues desc"]);
+  const { mode, setMode } = useSetIndexFiltersMode();
 
-  const [itemStrings, setItemStrings] = useState([
-    'All',
-    'Selected products',
-
-  ]);
+  const [itemStrings, setItemStrings] = useState(["All", "Selected products"]);
   const [loadingTable, setLoadingTable] = useState(false);
   const navigate = useNavigate();
-  const {storeData} = useShop();
+  const { storeData } = useShop();
   //console.warn(storeData);
   const primaryAction =
     selected === 0
       ? {
-        type: 'save-as',
-        onAction: () => {
-        },
-        disabled: true,
-        loading: false,
-      }
+          type: "save-as",
+          onAction: () => {},
+          disabled: true,
+          loading: false,
+        }
       : {
-        type: 'save',
-        onAction: () => {
-        },
-        disabled: true,
-        loading: false,
-      };
+          type: "save",
+          onAction: () => {},
+          disabled: true,
+          loading: false,
+        };
 
   useEffect(() => {
-    if (fetcher.state === 'idle') {
+    if (fetcher.state === "idle") {
       setLoadingTable(false);
-    } else if (fetcher.state === 'loading' || fetcher.state === 'submitting') {
+    } else if (fetcher.state === "loading" || fetcher.state === "submitting") {
       setLoadingTable(true);
     }
   }, [fetcher.state, data]);
@@ -157,12 +207,12 @@ export function AppProducts() {
   useEffect(() => {
     // Use fetcher.load instead of submit to refresh data based on URL params
     const params = new URLSearchParams({
-      page: currentPage,
-      display: display,
-      order_by: orderBy,
-      sort: sort,
-      searchTerm,
-      selected: selected,
+      page: currentPage?.toString() || "1",
+      display: display?.toString() || "25",
+      order_by: orderBy || "feedback_issue", // default fallback value
+      sort: sort || "asc",
+      searchTerm: searchTerm || "",
+      selected: selected?.toString() || "0",
     });
 
     setLoadingTable(true);
@@ -172,109 +222,94 @@ export function AppProducts() {
   const selectedData = useMemo(
     () =>
       data
-        ? data.filter((product) => selectedResources.includes(product.id))
+        ? data.filter((product) =>
+            selectedResources.includes(product.id.toString()),
+          )
         : [],
     [selectedResources, data],
   );
 
   // Function to handle search input change and update URL params
-  const handleSearchChange = (newTerm) => {
+  const handleSearchChange = (newTerm: string) => {
     setSearchParams({
       ...Object.fromEntries(searchParams),
       searchTerm: newTerm,
-      page: '1',
+      page: "1",
     });
     setSearchTerm(newTerm);
   };
 
   // Function to handle sort change and update URL params
-  const handleSortChange = (newSort) => {
-    let newSortSplit = newSort[0].split(' ');
+  const handleSortChange = (newSort: string[]) => {
+    let newSortSplit = newSort[0].split(" ");
     let order_by = newSortSplit[0];
     let sort = newSortSplit[1];
     setSearchParams({
       ...Object.fromEntries(searchParams),
       order_by: order_by,
       sort: sort,
-      page: '1',
+      page: "1",
     });
     setSortSelected(newSort);
   };
 
-  const handlePageChange = (nextPage) => {
+  const handlePageChange = (nextPage: number) => {
     setSearchParams({
       ...Object.fromEntries(searchParams),
-      page: nextPage,
+      page: nextPage.toString(),
     });
     setCurrentPage(nextPage);
   };
 
-  const handleTabSelectionChange = (selected) => {
+  const handleTabSelectionChange = (selected: number) => {
     setSearchParams({
       ...Object.fromEntries(searchParams),
-      selected: selected,
-      page: '1',
+      selected: selected.toString(),
+      page: "1",
     });
+    setCurrentPage(1);
   };
 
   const sortOptions = [
     {
-      label: 'Title',
-      value: 'title asc',
-      directionLabel: 'Ascending',
+      label: "Title",
+      value: "title asc",
+      directionLabel: "Ascending",
     },
     {
-      label: 'Title',
-      value: 'title desc',
-      directionLabel: 'Descending',
+      label: "Title",
+      value: "title desc",
+      directionLabel: "Descending",
     },
     {
-      label: 'No. Issues',
-      value: 'feedback_issues asc',
-      directionLabel: 'Ascending',
+      label: "No. Issues",
+      value: "feedback_issues asc",
+      directionLabel: "Ascending",
     },
     {
-      label: 'No. Issues',
-      value: 'feedback_issues desc',
-      directionLabel: 'Descending',
+      label: "No. Issues",
+      value: "feedback_issues desc",
+      directionLabel: "Descending",
     },
     {
-      label: 'Date',
-      value: 'date_created asc',
-      directionLabel: 'Ascending',
+      label: "Date",
+      value: "date_created asc",
+      directionLabel: "Ascending",
     },
     {
-      label: 'Date',
-      value: 'date_created desc',
-      directionLabel: 'Descending',
+      label: "Date",
+      value: "date_created desc",
+      directionLabel: "Descending",
     },
   ];
   const appliedFilters = [];
-  const onCreateNewView = async (value) => {
+  const onCreateNewView = async (value: string) => {
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
     return true;
   };
-  const [accountStatus, setAccountStatus] = useState(undefined);
 
-  const [taggedWith, setTaggedWith] = useState('');
-  const [moneySpent, setMoneySpent] = useState(0);
-
-  const handleTaggedWithChange = useCallback(
-    (value) => setTaggedWith(value),
-    [],
-  );
-  const handleAccountStatusChange = useCallback(
-    (value) => setAccountStatus(value),
-    [],
-  );
-
-  const handleMoneySpentChange = useCallback(
-    (value) => setMoneySpent(value),
-    [],
-  );
-
-  const filters = [
+  const filters: FilterInterface[] = [
     /*
     {
       key: "test",
@@ -390,30 +425,11 @@ export function AppProducts() {
             },
           ],*/
   }));
-  const onHandleCancel = () => {
-  };
-  const handleAccountStatusRemove = useCallback(
-    () => setAccountStatus(undefined),
-    [],
-  );
-  const handleMoneySpentRemove = useCallback(
-    () => setMoneySpent(undefined),
-    [],
-  );
-  const handleTaggedWithRemove = useCallback(() => setTaggedWith(''), []);
 
-  const handleQueryValueRemove = useCallback(() => setSearchTerm(''), []);
+  const handleQueryValueRemove = useCallback(() => setSearchTerm(""), []);
   const handleFiltersClearAll = useCallback(() => {
-    handleAccountStatusRemove();
-    handleMoneySpentRemove();
-    handleTaggedWithRemove();
     handleQueryValueRemove();
-  }, [
-    handleAccountStatusRemove,
-    handleMoneySpentRemove,
-    handleQueryValueRemove,
-    handleTaggedWithRemove,
-  ]);
+  }, [handleQueryValueRemove]);
   return (
     <Page
       title="Products"
@@ -424,7 +440,7 @@ export function AppProducts() {
             <Button
               variant="primary"
               onClick={() => setIsModalOpen(true)}
-              disabled={!error && selectedResources.length === 0 || !data}
+              disabled={(!error && selectedResources.length === 0) || !data}
               aria-label="Save selected products for AI enhancement"
             >
               Save products
@@ -433,9 +449,9 @@ export function AppProducts() {
             <Button
               variant="secondary"
               onClick={() => {
-                navigate('/app/regenerate/');
+                navigate("/app/regenerate/");
               }}
-              disabled={!error && selectedResources.length === 0 || !data}
+              disabled={(!error && selectedResources.length === 0) || !data}
               icon={AutomationFilledIcon}
             >
               Product optimisation
@@ -450,17 +466,17 @@ export function AppProducts() {
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           primaryAction={{
-            content: 'Enhance selected product',
+            content: "Enhance selected product",
             onAction: () => {
               setIsModalOpen(false);
               const formData = new FormData();
-              formData.append('selectedResources', selectedResources.join(','));
-              fetcher.submit(formData, {method: 'POST'});
+              formData.append("selectedResources", selectedResources.join(","));
+              fetcher.submit(formData, { method: "POST" });
             },
           }}
         >
           <Modal.Section>
-            <Text variant="bodyLg" fontWeight="bold">
+            <Text as={"p"} variant="bodyLg" fontWeight="bold">
               Are you sure you want to enhance these products with AI?
             </Text>
           </Modal.Section>
@@ -474,20 +490,8 @@ export function AppProducts() {
                 queryValue={searchTerm}
                 queryPlaceholder="Searching in all"
                 onQueryChange={handleSearchChange}
-                onQueryClear={() => setSearchTerm('')}
+                onQueryClear={() => setSearchTerm("")}
                 onSort={(value) => handleSortChange(value)}
-                primaryAction={{
-                  type: 'save',
-                  onAction: () => {
-                  },
-                  disabled: true,
-                  loadingTable: false,
-                }}
-                cancelAction={{
-                  onAction: onHandleCancel,
-                  disabled: true,
-                  loading: false,
-                }}
                 tabs={tabs}
                 loading={loadingTable}
                 selected={selected}
@@ -502,12 +506,12 @@ export function AppProducts() {
 
               <IndexTable
                 resourceName={{
-                  singular: 'Product',
-                  plural: 'Products',
+                  singular: "Product",
+                  plural: "Products",
                 }}
                 selectable
                 onSelectionChange={handleSelectionChange}
-                headings={[{title: 'Title'}, {title: 'Issues'}]}
+                headings={[{ title: "Title" }, { title: "Issues" }]}
                 selectedItemsCount={selectedResources.length || 0}
                 itemCount={data ? data.length : 0}
                 loading={loadingTable}
@@ -518,29 +522,33 @@ export function AppProducts() {
                   onNext: () => handlePageChange(currentPage + 1),
                 }}
               >
-                {data && data.length > 0 && data.map((product) => (
-                  <SingleRow
-                    product={product}
-                    key={product.id}
-                    selectedResources={selectedResources}
-                  />
-                ))}
+                {data &&
+                  data.length > 0 &&
+                  data.map((product: product) => (
+                    <SingleRofew
+                      product={product}
+                      key={product.id}
+                      selectedResources={selectedResources}
+                    />
+                  ))}
               </IndexTable>
             </BlockStack>
           </Card>
         </Layout.Section>
-        <Layout.Section variant={'oneThird'}>
-          <Card title="Selected Products">
-            <BlockStack gap="250" align={'center'}>
+        <Layout.Section variant={"oneThird"}>
+          <Card>
+            <BlockStack gap="200" align={"center"}>
               {selectedData && selectedData.length > 0 ? (
-                selectedData.map((product) => (
+                selectedData.map((singleProduct: product) => (
                   <ProductCard
-                    key={product.id}
-                    product={product}
+                    key={singleProduct.id}
+                    product={singleProduct}
                     shopUrl={shop?.shop_url}
-                    removeSelectedProduct={(id) =>
+                    removeSelectedProduct={(id: number) =>
                       handleSelectionChange(
-                        selectedResources.filter((resId) => resId !== id),
+                        selectedResources.filter(
+                          (resId) => parseInt(resId) !== id,
+                        ),
                       )
                     }
                   />
