@@ -41,7 +41,7 @@ export const Enhancement = (props) => {
   }, []);
   const verticalContentMarkup =
     tagArrayValue.length > 0 ? (
-      <InlineStack gap={"100"} spacing="extraTight" alignment="center">
+      <InlineStack gap={"100"} spacing={"extraTight"} alignment="center">
         {tagArrayValue.map((tag) => (
           <Tag key={`option-${tag}`} onRemove={() => removeTag(tag)}>
             {tag}

@@ -26,7 +26,7 @@ import type { Product } from "../globals";
 interface SingleRowProps {
   product: Product;
   position: number;
-  selectedResources: number[];
+  selectedResources: string[];
 }
 
 export default function SingleRow(props: SingleRowProps) {

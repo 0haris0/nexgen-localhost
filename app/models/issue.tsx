@@ -2,7 +2,7 @@ import dbServer from "../db.server";
 
 export const saveIssue = (
   shop_id: number,
-  issuesCount: number,
+  issuesCount: issueCount,
   product_id: number,
   shopify_product_id: string,
 ) => {

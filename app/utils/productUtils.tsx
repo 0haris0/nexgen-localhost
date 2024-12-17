@@ -59,7 +59,7 @@ async function updateProduct(admin: any, productData: any, actionType: any) {
       updatedProductData = {
         id: productData.id,
         shopify_id: productData.shopify_id,
-        product_status: "ARCHIVED",
+        product_status: "processed",
         ai_correction: false,
       };
       const updatedProduct = await dbServer.product.update({
@@ -99,7 +99,7 @@ async function updateProduct(admin: any, productData: any, actionType: any) {
         url: newProduct.images.edges[0]?.node.src || null,
       },
       last_checked: new Date(),
-      product_status: "PROCESSED",
+      product_status: "updated",
       ai_correction: false,
       feedback: productData.feedback,
       feedback_issues: productData.feedback_issues,
@@ -344,23 +344,23 @@ export const fetchProductsQuery = async (admin: any) => {
     // Fetch products using Shopify GraphQL
     const response = await admin.graphql(
       `#graphql
-        query getProducts {
-          shop { id name }
-          products(first: 250, query: "status:ACTIVE") {
-            edges {
-              node {
-                id handle title description
-                category { id fullName name }
-                tags productType
-                featuredMedia { mediaContentType alt preview { image { url width height } } }
-                seo { title description }
-                status updatedAt createdAt
-              }
+      query getProducts {
+        shop { id name }
+        products(first: 250, query: "status:ACTIVE") {
+          edges {
+            node {
+              id handle title description
+              category { id fullName name }
+              tags productType
+              featuredMedia { mediaContentType alt preview { image { url width height } } }
+              seo { title description }
+              status updatedAt createdAt
             }
-            pageInfo { hasNextPage hasPreviousPage }
           }
-          productsCount(query: "status:ACTIVE") { count }
+          pageInfo { hasNextPage hasPreviousPage }
         }
+        productsCount(query: "status:ACTIVE") { count }
+      }
       `,
     );
     const result = await response.json();
@@ -374,7 +374,7 @@ export const fetchProductsQuery = async (admin: any) => {
       throw new Error("GraphQL response is empty.");
     }
     const productEdges = result.data.products.edges as Array<ProductEdge>;
-    const shopifyId = await shopId(storeData.shop.id);
+    const shopifyId = result.data.shop.id;
     const shopIdVal = await shopId(shopifyId);
 
     for (const { node: product } of productEdges) {
@@ -410,7 +410,7 @@ export const fetchProductsQuery = async (admin: any) => {
     }
     return {
       success: true,
-      productsCount: storeData.productsCount.count,
+      productsCount: result.data.productsCount.count,
     };
   } catch (error) {
     if (error instanceof Error) {

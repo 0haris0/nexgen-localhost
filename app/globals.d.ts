@@ -3,11 +3,11 @@ import type { ActiveSubscriptions } from "@shopify/shopify-api";
 
 declare module "*.css";
 export type Store = {
-  success: boolean;
-  shop: shops;
-  subscription: ActiveSubscriptions;
-  productNumber: number;
-  error?: string;
+  success: boolean; // Indicates if the operation was successful
+  shop: shops; // Shop details
+  subscription: ActiveSubscriptions; // Active subscriptions
+  productNumber: number; // Number of products
+  error?: string; // Optional error message
 };
 
 export type Shop = {

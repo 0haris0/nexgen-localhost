@@ -15,7 +15,7 @@ export default function PlanInfo({ plan, productCount, finishedCount }) {
       <Text as="h2" variant="headingMd">
         Product Info
       </Text>
-      <BlockStack gap="loose">
+      <BlockStack gap="200">
         <Text as="span" variant="bodyMd" tone="base">
           We are currently analyzing your product shop to identify areas for
           improvement.
@@ -31,8 +31,8 @@ export default function PlanInfo({ plan, productCount, finishedCount }) {
           aria-label="Product shop analysis progress"
         />
 
-        <InlineStack align="space-between" gap="loose">
-          <InlineStack gap="loose">
+        <InlineStack align="space-between" gap="200">
+          <InlineStack gap="200">
             <Badge tone="info">
               Number of products:{" "}
               <Text as="span" fontWeight="bold">

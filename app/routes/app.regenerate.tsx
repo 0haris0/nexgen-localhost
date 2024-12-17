@@ -99,30 +99,33 @@ const initialState: ProductState = { products: [] };
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   try {
-    const storeData = await fetchShopQuery(admin);
+    const response = await fetchShopQuery(admin);
 
-    if (!storeData) {
+    if (!response) {
       new Error("No data returned from the GraphQL API.");
-      // }
-
-      // const { shop, subscription } = storeData;
-      console.log(storeData);
-      const enhancedProducts = await fetchEnhancedProducts(shop.id, false);
-      // Check each product's enhanced data in the database
-      const productsWithEnhancements = await Promise.all(
-        enhancedProducts.map(async (product) => {
-          const enhancedData = await getSingleProductFromHistory(product.id);
-          return enhancedData ? { ...product, ...enhancedData } : product;
-        }),
-      );
-      console.log(productsWithEnhancements, "prodenh");
-      return {
-        success: true,
-        data: productsWithEnhancements,
-        shop: shop,
-        subscription: subscription,
-      };
     }
+
+    const { shop, subscription } = response;
+    console.log(response, "response");
+    if (!shop) {
+      throw new Error("No shop data found in the response.");
+    }
+    const enhancedProducts = await fetchEnhancedProducts(shop.id, true);
+    console.log(enhancedProducts, "enhancedProducts");
+    // Check each product's enhanced data in the database
+    const productsWithEnhancements = await Promise.all(
+      enhancedProducts.map(async (product) => {
+        const enhancedData = await getSingleProductFromHistory(product.id);
+        return enhancedData ? { ...product, ...enhancedData } : product;
+      }),
+    );
+    console.log(productsWithEnhancements, "prodenh");
+    return {
+      success: true,
+      data: productsWithEnhancements,
+      shop: shop || {},
+      subscription: subscription || {},
+    };
   } catch (error) {
     if (error instanceof Error) {
       console.error(error.message);
@@ -188,12 +191,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 };
 
 type LoaderData = {
-  data: product[];
+  data: Array<product>;
   shop: any;
   subscription: any;
 };
 
-export function ReviewEnhancements() {
+export default function ReviewEnhancements() {
   const { data, shop, subscription } = useLoaderData<LoaderData>();
   const fetcher = useFetcher();
   const [state, dispatch] = useReducer(productReducer, initialState);
@@ -239,15 +242,7 @@ export function ReviewEnhancements() {
   const enhanceProductWithAI = async (singleProduct: product) => {
     let enhancedProduct = singleProduct;
     setEnhanceButtonLoading(true);
-    if (
-      !subscription ||
-      subscription.length === 0 ||
-      subscription[0].status !== "ACTIVE"
-    ) {
-      shopify.toast.show("There was problem with your subscription");
-      setEnhanceButtonLoading(false);
-      return;
-    }
+  
     if (shop.credit < 100) {
       shopify.toast.show("You don't have enough credit for this action");
       setEnhanceButtonLoading(false);

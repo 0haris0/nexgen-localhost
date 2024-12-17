@@ -1,5 +1,5 @@
 // Converted to TypeScript
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { authenticate } from "../shopify.server.js";
 import type { FilterInterface } from "@shopify/polaris";
 import {
@@ -46,15 +46,16 @@ type OptionsType = {
   order_by: string;
   sort: string;
   selected: number;
-  searchTerm: string | null;
+  searchTerm: string | undefined;
 };
 
 type LoaderResponseType = {
   data: any[]; // Adjust based on the product data type
-  shop: { id: string; [key: string]: any }; // Adjust fields as needed
+  shop: shops; // Adjust fields as needed
   count: number;
   issueDropDown: number[]; // Array of issue counts
   options: OptionsType;
+  error?: string;
 };
 
 // Loader function
@@ -74,7 +75,8 @@ export const loader = async ({
     if (!storeData) {
       throw new Error("No data returned from the GraphQL API.");
     }
-    const shopIdDB = storeData.shop.id;
+    const { shop } = storeData;
+    const shopIdDB = shop != undefined ? shop.id : 0;
     const url = new URL(request.url);
     const options: OptionsType = {
       page: parseInt(url.searchParams.get("page") || "1", 10),
@@ -82,19 +84,21 @@ export const loader = async ({
       order_by: url.searchParams.get("order_by") || "feedback_issues",
       sort: url.searchParams.get("sort") || "desc",
       selected: parseInt(url.searchParams.get("selected") || "0", 10),
-      searchTerm: url.searchParams.get("searchTerm") || null,
+      searchTerm: url.searchParams.get("searchTerm") || undefined,
     };
-
-    const { result, totalCount } = await getProductsByShopId({
+    const response = await getProductsByShopId({
       shop_id: shopIdDB,
       options: options as OptionsType,
     });
+    const { result, totalCount } = response;
     const countIssuesRes = await countIssues(shopIdDB);
     const issueCountSelection = countIssuesRes.data.map(
-      (item: { feedback_issues: number }) => item.feedback_issues,
+      (item: { feedback_issues: string | null; _count: { _all: number } }) =>
+        parseInt(item.feedback_issues || "0"),
     );
 
     return {
+      error: "",
       success: true,
       data: result,
       shop: storeData.shop,
@@ -179,8 +183,8 @@ export default function AppProducts() {
   const [itemStrings, setItemStrings] = useState(["All", "Selected products"]);
   const [loadingTable, setLoadingTable] = useState(false);
   const navigate = useNavigate();
-  const { storeData } = useShop();
-  //console.warn(storeData);
+  const { storeMainData } = useShop();
+  console.warn(storeMainData);
   const primaryAction =
     selected === 0
       ? {
@@ -302,7 +306,7 @@ export default function AppProducts() {
       directionLabel: "Descending",
     },
   ];
-  const appliedFilters = [];
+  //const appliedFilters = [];
   const onCreateNewView = async (value: string) => {
     setItemStrings([...itemStrings, value]);
     setSelected(itemStrings.length);
@@ -524,11 +528,12 @@ export default function AppProducts() {
               >
                 {data &&
                   data.length > 0 &&
-                  data.map((product: product) => (
-                    <SingleRofew
+                  data.map((product) => (
+                    <SingleRow
                       product={product}
                       key={product.id}
                       selectedResources={selectedResources}
+                      position={product.id}
                     />
                   ))}
               </IndexTable>
@@ -539,20 +544,22 @@ export default function AppProducts() {
           <Card>
             <BlockStack gap="200" align={"center"}>
               {selectedData && selectedData.length > 0 ? (
-                selectedData.map((singleProduct: product) => (
-                  <ProductCard
-                    key={singleProduct.id}
-                    product={singleProduct}
-                    shopUrl={shop?.shop_url}
-                    removeSelectedProduct={(id: number) =>
-                      handleSelectionChange(
-                        selectedResources.filter(
-                          (resId) => parseInt(resId) !== id,
-                        ),
-                      )
-                    }
-                  />
-                ))
+                selectedData.map((singleProduct: product) => {
+                  return (
+                    <ProductCard
+                      key={singleProduct.id}
+                      product={singleProduct}
+                      shopUrl={shop?.shop_url}
+                      removeSelectedProduct={(id: number) => {
+                        handleSelectionChange(
+                          selectedResources.filter(
+                            (resId) => parseInt(resId) !== id,
+                          ),
+                        );
+                      }}
+                    />
+                  );
+                })
               ) : (
                 <EmptyState
                   heading="Manage your inventory"

@@ -1,3 +1,4 @@
+import { useShop } from "../utils/ShopContext";
 // Converted to TypeScript
 import React, { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "@remix-run/react";
@@ -100,11 +101,12 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
 
+
   try {
     // Fetch products data
     const productsData = await fetchProductsQuery(admin);
 
-    if (!productsData || typeof productsData.productsCount !== "number") {
+    if (!productsData) {
       throw new Error("Invalid products data returned.");
     }
 
@@ -139,6 +141,7 @@ export default function Index() {
   const fetcher = useFetcher<ActionData>();
   const { success, shop, issues, issuesCat, subscription } =
     useLoaderData<LoaderData>();
+  const { storeMainData } = useShop(); // Correctly use the imported hook
 
   const [isVisible, setIsVisible] = useState(false);
   const [error, setError] = useState(null);
@@ -152,7 +155,7 @@ export default function Index() {
     savedStoreData,
     setSavedStoreData,
   } = useShop();*/
-
+  console.log(storeMainData, "storeMainData");
   useEffect(() => {
     if (!shop) {
       return;
@@ -323,3 +326,4 @@ function InsightsSection() {
     </BlockStack>
   );
 }
+
