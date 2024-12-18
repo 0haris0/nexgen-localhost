@@ -21,10 +21,10 @@ import {
 } from "@shopify/polaris-icons";
 
 import { FeedbackIssue } from "./feedbackIssue";
-import type { Product } from "../globals";
+import type { product } from "@prisma/client";
 
 interface SingleRowProps {
-  product: Product;
+  product: product;
   position: number;
   selectedResources: string[];
 }
@@ -62,11 +62,11 @@ export default function SingleRow(props: SingleRowProps) {
       {/* Main row with title and button */}
       <IndexTable.Row
         position={props.position}
-        id={id}
+        id={id.toString()}
         key={id}
-        selected={props.selectedResources.includes(id)}
+        selected={props.selectedResources.includes(id.toString())}
         onClick={handleToggle}
-        disabled={ai_correction}
+        disabled={ai_correction === true}
       >
         <IndexTable.Cell>
           <InlineStack gap="200" blockAlign="center" wrap={false} align="start">
@@ -100,7 +100,7 @@ export default function SingleRow(props: SingleRowProps) {
               variant="secondary"
               onClick={() => handleToggle}
             >
-              <InlineStack align="center" gap="150">
+              <InlineStack align="center" gap="200">
                 <Text as="span" alignment="end" fontWeight="bold">
                   <FeedbackIssue IssuesNumber={feedback_issues} />
                 </Text>

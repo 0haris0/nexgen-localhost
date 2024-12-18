@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "e0ca33cf902315426479ef62e16cf227"
-application_url = "https://talented-uv-gain-nursing.trycloudflare.com"
+application_url = "https://zone-suffered-seeing-step.trycloudflare.com"
 embedded = true
 name = "nexgen-localhost"
 handle = "nexgen-localhost"
@@ -24,9 +24,9 @@ scopes = "read_analytics,read_inventory,read_orders,read_pixels,read_product_fee
 
 [auth]
 redirect_urls = [
-  "https://talented-uv-gain-nursing.trycloudflare.com/auth/callback",
-  "https://talented-uv-gain-nursing.trycloudflare.com/auth/shopify/callback",
-  "https://talented-uv-gain-nursing.trycloudflare.com/api/auth/callback"
+  "https://zone-suffered-seeing-step.trycloudflare.com/auth/callback",
+  "https://zone-suffered-seeing-step.trycloudflare.com/auth/shopify/callback",
+  "https://zone-suffered-seeing-step.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -46,7 +46,7 @@ type OptionsType = {
   order_by: string;
   sort: string;
   selected: number;
-  searchTerm: string | undefined;
+  searchTerm: string | null;
 };
 
 type LoaderResponseType = {
@@ -84,7 +84,7 @@ export const loader = async ({
       order_by: url.searchParams.get("order_by") || "feedback_issues",
       sort: url.searchParams.get("sort") || "desc",
       selected: parseInt(url.searchParams.get("selected") || "0", 10),
-      searchTerm: url.searchParams.get("searchTerm") || undefined,
+      searchTerm: url.searchParams.get("searchTerm") || null,
     };
     const response = await getProductsByShopId({
       shop_id: shopIdDB,
@@ -101,7 +101,7 @@ export const loader = async ({
       error: "",
       success: true,
       data: result,
-      shop: storeData.shop,
+      shop: shop,
       count: totalCount,
       issueDropDown: issueCountSelection,
       options: options,
@@ -430,7 +430,10 @@ export default function AppProducts() {
           ],*/
   }));
 
-  const handleQueryValueRemove = useCallback(() => setSearchTerm(""), []);
+  const handleQueryValueRemove = useCallback(
+    () => setSearchTerm(""),
+    [searchTerm],
+  );
   const handleFiltersClearAll = useCallback(() => {
     handleQueryValueRemove();
   }, [handleQueryValueRemove]);
@@ -494,13 +497,14 @@ export default function AppProducts() {
                 queryValue={searchTerm}
                 queryPlaceholder="Searching in all"
                 onQueryChange={handleSearchChange}
-                onQueryClear={() => setSearchTerm("")}
+                onQueryClear={() => handleSearchChange("")}
                 onSort={(value) => handleSortChange(value)}
                 tabs={tabs}
                 loading={loadingTable}
                 selected={selected}
                 onSelect={setSelected}
                 canCreateNewView={false}
+                autoFocusSearchField={true}
                 onCreateNewView={onCreateNewView}
                 onClearAll={handleFiltersClearAll}
                 filters={filters}
@@ -544,12 +548,12 @@ export default function AppProducts() {
           <Card>
             <BlockStack gap="200" align={"center"}>
               {selectedData && selectedData.length > 0 ? (
-                selectedData.map((singleProduct: product) => {
+                selectedData.map((singleProduct) => {
                   return (
                     <ProductCard
                       key={singleProduct.id}
                       product={singleProduct}
-                      shopUrl={shop?.shop_url}
+                      shopUrl={shop ? shop.shop_url : ""}
                       removeSelectedProduct={(id: number) => {
                         handleSelectionChange(
                           selectedResources.filter(
