@@ -1,20 +1,20 @@
 // Converted to TypeScript
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
-import {useLoaderData} from "@remix-run/react";
+import { useLoaderData } from "@remix-run/react";
 import { authenticate } from "../shopify.server.js";
 import { Page } from "@shopify/polaris";
 
 const graphQL = `#graphql query getApp($idS: ID!) { node(id: $idS) { ... on AppSubscription { status } } }`;
 
-export const loader = async ({request}: LoaderFunctionArgs) => {
-  const {admin} = await authenticate.admin(request);
+export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const { admin } = await authenticate.admin(request);
   const url = new URL(request.url);
   const chargeId = url.searchParams.get("charge_id");
   const shop = url.searchParams.get("shop");
 
   if (!shop || !chargeId) {
-    throw new Response("Missing required parameters", {status: 400});
+    throw new Response("Missing required parameters", { status: 400 });
   }
 
   try {
@@ -38,14 +38,13 @@ export const loader = async ({request}: LoaderFunctionArgs) => {
     }
   } catch (error) {
     console.error("Error verifying subscription status:", error);
-    throw new Response("Error verifying subscription status", {status: 500});
+    throw new Response("Error verifying subscription status", { status: 500 });
   }
 };
 
-export const action = async ({request}: ActionFunctionArgs) => {
+export const action = async ({ request }: ActionFunctionArgs) => {
   return null;
 };
-
 
 // Main ReturnUrl component to display data (for debugging purposes)
 export function ReturnUrl() {

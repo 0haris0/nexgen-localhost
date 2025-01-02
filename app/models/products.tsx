@@ -1,4 +1,4 @@
-import type { Prisma, product, productHistory } from "@prisma/client"; // Ensure Prisma types are imported
+import type { Prisma, productHistory } from "@prisma/client"; // Ensure Prisma types are imported
 import dbServer from "../db.server"; // Ensure this is the proper dbServer import
 import { handleApiError } from "../utils/handleApiError";
 import type { Scalars } from "../types/admin.types";
@@ -13,7 +13,7 @@ export async function saveProduct(product: {
   featured_image: { url: any };
   seo_title: string | null | undefined;
   tags: Array<Scalars["String"]["output"]>;
-  feedback: Array<feedback>;
+  feedback: Array<{ feedback: any }>;
   shop_id: number;
   product_type: string;
   category_id: string | undefined;
@@ -174,10 +174,10 @@ export async function getSingleProductFromHistory(productId: number) {
 interface FilteringOptions {
   selected?: number;
   searchTerm?: string;
-  order_by: keyof Prisma.productOrderByWithRelationInput; // Enforce order_by to match Prisma keys
-  sort: Prisma.SortOrder; // 'asc' | 'desc'
-  page: number;
-  display: number;
+  order_by: string | "feedback_issues"; // Enforce order_by to match Prisma keys
+  sort: string | "asc"; // 'asc' | 'desc'
+  page: number | 1;
+  display: number | 25;
 } // Import error handler
 
 interface FilteringByShopId {
@@ -275,7 +275,7 @@ type CountIssuesResult = {
   success: boolean;
   data: Array<{
     feedback_issues: string | null;
-    _count: { _all: number };
+    _count: number;
   }>;
   error?: string;
 };
@@ -301,9 +301,13 @@ export async function countIssues(shop_id: number): Promise<CountIssuesResult> {
     // Ensure feedback_issues is of type string | null
     const formattedResult = result.map((item) => ({
       feedback_issues: item.feedback_issues?.toString() || null,
-      _count: item._count,
+      _count: item._count._all,
     }));
-
+    await saveNewIssues({
+      shop_id: shop_id,
+      type: "issues",
+      issues: formattedResult,
+    });
     return {
       success: true,
       data: formattedResult,
@@ -322,6 +326,29 @@ export async function countIssues(shop_id: number): Promise<CountIssuesResult> {
         error: "An error occurred while counting issues.",
       };
     }
+  }
+}
+
+export async function saveNewIssues({
+  shop_id,
+  type,
+  issues,
+}: {
+  shop_id: number;
+  issuesType: string;
+  issues: Array<any>;
+}) {
+  try {
+    await dbServer.issues.create({
+      data: {
+        shop_id: shop_id,
+        issuesType: type,
+        issuesCount: issues,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    throw new Error("Failed to save new issues.");
   }
 }
 

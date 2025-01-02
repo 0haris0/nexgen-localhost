@@ -3,17 +3,9 @@
   <database-model serializer="dbm" dbms="POSTGRES" family-id="POSTGRES" format-version="4.52">
     <root id="1">
       <DateStyle>mdy</DateStyle>
-      <Grants>1||-9223372036854775808|c|G
-1||10|c|G
-1||10|C|G
-1||10|T|G
-4||-9223372036854775808|c|G
-4||10|c|G
-4||10|C|G
-4||10|T|G</Grants>
-      <IntrospectionStateNumber>4372</IntrospectionStateNumber>
+      <IntrospectionStateNumber>16753</IntrospectionStateNumber>
       <ServerVersion>17.1</ServerVersion>
-      <StartupTime>1733037705</StartupTime>
+      <StartupTime>1734510599</StartupTime>
       <TimeZones>true ACDT
 true ACSST
 false ACST
@@ -806,7 +798,7 @@ false Zulu
 14704||10|C|G
 14704||-9223372036854775808|U|G
 14704||10|U|G</Grants>
-      <IntrospectionStateNumber>4372</IntrospectionStateNumber>
+      <IntrospectionStateNumber>16753</IntrospectionStateNumber>
       <ObjectId>5</ObjectId>
       <OwnerName>postgres</OwnerName>
     </database>
@@ -4227,8 +4219,8 @@ false Zulu
     </schema>
     <schema id="264" parent="2" name="public">
       <Current>1</Current>
-      <IntrospectionStateNumber>4372</IntrospectionStateNumber>
-      <LastIntrospectionLocalTimestamp>2024-12-02.13:29:25</LastIntrospectionLocalTimestamp>
+      <IntrospectionStateNumber>16753</IntrospectionStateNumber>
+      <LastIntrospectionLocalTimestamp>2024-12-18.11:31:12</LastIntrospectionLocalTimestamp>
       <ObjectId>29327</ObjectId>
       <StateNumber>4323</StateNumber>
       <OwnerName>postgres</OwnerName>
@@ -4354,7 +4346,7 @@ SUSPENDED</Labels>
     </table>
     <table id="278" parent="264" name="issues">
       <ObjectId>29410</ObjectId>
-      <StateNumber>4326</StateNumber>
+      <StateNumber>16711</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
@@ -4372,7 +4364,7 @@ SUSPENDED</Labels>
     </table>
     <table id="281" parent="264" name="product">
       <ObjectId>29419</ObjectId>
-      <StateNumber>4326</StateNumber>
+      <StateNumber>16618</StateNumber>
       <AccessMethodId>2</AccessMethodId>
       <OwnerName>postgres</OwnerName>
     </table>
@@ -4479,41 +4471,33 @@ SUSPENDED</Labels>
     </column>
     <column id="296" parent="278" name="shop_id">
       <DasType>integer|0s</DasType>
+      <NotNull>1</NotNull>
       <Position>2</Position>
-      <StateNumber>4326</StateNumber>
+      <StateNumber>16618</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="297" parent="278" name="product_id">
-      <DasType>integer|0s</DasType>
-      <NotNull>1</NotNull>
-      <Position>3</Position>
-      <StateNumber>4326</StateNumber>
-      <TypeId>23</TypeId>
-    </column>
-    <column id="298" parent="278" name="shopify_product_id">
-      <DasType>text|0s</DasType>
-      <NotNull>1</NotNull>
-      <Position>4</Position>
-      <StateNumber>4326</StateNumber>
-      <TypeId>25</TypeId>
-    </column>
-    <column id="299" parent="278" name="issuesCount">
+    <column id="297" parent="278" name="issuesCount">
       <DasType>jsonb|0s</DasType>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <foreign-key id="300" parent="278" name="issues_product_id_fkey">
-      <ColNames>product_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>29495</ObjectId>
+    <column id="298" parent="278" name="issuesType">
+      <DasType>text|0s</DasType>
+      <Position>6</Position>
+      <StateNumber>16711</StateNumber>
+      <TypeId>25</TypeId>
+    </column>
+    <foreign-key id="299" parent="278" name="issues_ibfk_1">
+      <ColNames>shop_id</ColNames>
+      <ObjectId>45618</ObjectId>
       <OnDelete>cascade</OnDelete>
       <OnUpdate>cascade</OnUpdate>
-      <StateNumber>4326</StateNumber>
+      <StateNumber>16618</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
-      <RefTableId>29419</RefTableId>
+      <RefTableId>29443</RefTableId>
     </foreign-key>
-    <index id="301" parent="278" name="issues_pkey">
+    <index id="300" parent="278" name="issues_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29416</ObjectId>
@@ -4522,33 +4506,20 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="302" parent="278" name="issues_product_id_key">
-      <ColNames>product_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>29481</ObjectId>
-      <StateNumber>4326</StateNumber>
-      <Unique>1</Unique>
+    <index id="301" parent="278" name="issues_shop_id_index">
+      <ColNames>shop_id</ColNames>
+      <ObjectId>45617</ObjectId>
+      <StateNumber>16618</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="303" parent="278" name="issues_shopify_product_id_key">
-      <ColNames>shopify_product_id</ColNames>
-      <NameSurrogate>1</NameSurrogate>
-      <ObjectId>29482</ObjectId>
-      <StateNumber>4326</StateNumber>
-      <Unique>1</Unique>
-      <AccessMethodId>403</AccessMethodId>
-      <CollationNames>default</CollationNames>
-      <CollationIds>100</CollationIds>
-      <CollationParentNames>pg_catalog</CollationParentNames>
-    </index>
-    <key id="304" parent="278" name="issues_pkey">
+    <key id="302" parent="278" name="issues_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29417</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4326</StateNumber>
       <UnderlyingIndexId>29416</UnderlyingIndexId>
     </key>
-    <column id="305" parent="279" name="id">
+    <column id="303" parent="279" name="id">
       <DasType>integer|0s</DasType>
       <DefaultExpression>nextval(&apos;payments_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4557,87 +4528,87 @@ SUSPENDED</Labels>
       <SequenceId>29395</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="306" parent="279" name="shop_id">
+    <column id="304" parent="279" name="shop_id">
       <DasType>integer|0s</DasType>
       <Position>2</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="307" parent="279" name="subscription_plan">
+    <column id="305" parent="279" name="subscription_plan">
       <DasType>payments_subscription_plan|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29354</TypeId>
     </column>
-    <column id="308" parent="279" name="amount">
+    <column id="306" parent="279" name="amount">
       <DasType>numeric(10,2 digit)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>4</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1700</TypeId>
     </column>
-    <column id="309" parent="279" name="currency">
+    <column id="307" parent="279" name="currency">
       <DasType>varchar(10)|0s</DasType>
       <DefaultExpression>&apos;USD&apos;::character varying</DefaultExpression>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1043</TypeId>
     </column>
-    <column id="310" parent="279" name="payment_date">
+    <column id="308" parent="279" name="payment_date">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>6</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="311" parent="279" name="next_payment_date">
+    <column id="309" parent="279" name="next_payment_date">
       <DasType>timestamp(3)|0s</DasType>
       <Position>7</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="312" parent="279" name="payment_status">
+    <column id="310" parent="279" name="payment_status">
       <DasType>payments_payment_status|0s</DasType>
       <DefaultExpression>&apos;paid&apos;::payments_payment_status</DefaultExpression>
       <Position>8</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29364</TypeId>
     </column>
-    <column id="313" parent="279" name="payment_method">
+    <column id="311" parent="279" name="payment_method">
       <DasType>payments_payment_method|0s</DasType>
       <Position>9</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29374</TypeId>
     </column>
-    <column id="314" parent="279" name="created_at">
+    <column id="312" parent="279" name="created_at">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>10</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="315" parent="279" name="updated_at">
+    <column id="313" parent="279" name="updated_at">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>11</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="316" parent="279" name="notes">
+    <column id="314" parent="279" name="notes">
       <DasType>text|0s</DasType>
       <Position>12</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <foreign-key id="317" parent="279" name="payments_ibfk_1">
+    <foreign-key id="315" parent="279" name="payments_ibfk_1">
       <ColNames>shop_id</ColNames>
       <ObjectId>29490</ObjectId>
       <StateNumber>4326</StateNumber>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>29443</RefTableId>
     </foreign-key>
-    <index id="318" parent="279" name="payments_pkey">
+    <index id="316" parent="279" name="payments_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29407</ObjectId>
@@ -4646,20 +4617,20 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="319" parent="279" name="payments_shop_id_index">
+    <index id="317" parent="279" name="payments_shop_id_index">
       <ColNames>shop_id</ColNames>
       <ObjectId>29480</ObjectId>
       <StateNumber>4326</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="320" parent="279" name="payments_pkey">
+    <key id="318" parent="279" name="payments_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29408</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4326</StateNumber>
       <UnderlyingIndexId>29407</UnderlyingIndexId>
     </key>
-    <column id="321" parent="280" name="id">
+    <column id="319" parent="280" name="id">
       <DasType>integer|0s</DasType>
       <DefaultExpression>nextval(&apos;plan_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4668,27 +4639,27 @@ SUSPENDED</Labels>
       <SequenceId>29516</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="322" parent="280" name="name">
+    <column id="320" parent="280" name="name">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>4338</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="323" parent="280" name="price">
+    <column id="321" parent="280" name="price">
       <DasType>double precision|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>4338</StateNumber>
       <TypeId>701</TypeId>
     </column>
-    <column id="324" parent="280" name="description">
+    <column id="322" parent="280" name="description">
       <DasType>text|0s</DasType>
       <Position>4</Position>
       <StateNumber>4338</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="325" parent="280" name="productNumber">
+    <column id="323" parent="280" name="productNumber">
       <DasType>integer|0s</DasType>
       <DefaultExpression>3</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4696,7 +4667,7 @@ SUSPENDED</Labels>
       <StateNumber>4338</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="326" parent="280" name="credits">
+    <column id="324" parent="280" name="credits">
       <DasType>integer|0s</DasType>
       <DefaultExpression>100</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4704,7 +4675,7 @@ SUSPENDED</Labels>
       <StateNumber>4338</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="327" parent="280" name="createdAt">
+    <column id="325" parent="280" name="createdAt">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4712,14 +4683,14 @@ SUSPENDED</Labels>
       <StateNumber>4338</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="328" parent="280" name="updatedAt">
+    <column id="326" parent="280" name="updatedAt">
       <DasType>timestamp(3)|0s</DasType>
       <NotNull>1</NotNull>
       <Position>8</Position>
       <StateNumber>4338</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <index id="329" parent="280" name="plan_pkey">
+    <index id="327" parent="280" name="plan_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29526</ObjectId>
@@ -4728,14 +4699,14 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="330" parent="280" name="plan_pkey">
+    <key id="328" parent="280" name="plan_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29527</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4338</StateNumber>
       <UnderlyingIndexId>29526</UnderlyingIndexId>
     </key>
-    <column id="331" parent="281" name="id">
+    <column id="329" parent="281" name="id">
       <DasType>integer|0s</DasType>
       <DefaultExpression>nextval(&apos;product_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4744,137 +4715,137 @@ SUSPENDED</Labels>
       <SequenceId>29418</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="332" parent="281" name="shopify_id">
+    <column id="330" parent="281" name="shopify_id">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="333" parent="281" name="shop_id">
+    <column id="331" parent="281" name="shop_id">
       <DasType>integer|0s</DasType>
       <Position>3</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="334" parent="281" name="title">
+    <column id="332" parent="281" name="title">
       <DasType>text|0s</DasType>
       <Position>4</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="335" parent="281" name="description">
+    <column id="333" parent="281" name="description">
       <DasType>text|0s</DasType>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="336" parent="281" name="seo_title">
+    <column id="334" parent="281" name="seo_title">
       <DasType>text|0s</DasType>
       <Position>6</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="337" parent="281" name="seo_description">
+    <column id="335" parent="281" name="seo_description">
       <DasType>text|0s</DasType>
       <Position>7</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="338" parent="281" name="date_created">
+    <column id="336" parent="281" name="date_created">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>8</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="339" parent="281" name="last_checked">
+    <column id="337" parent="281" name="last_checked">
       <DasType>timestamp(3)|0s</DasType>
       <Position>9</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="340" parent="281" name="product_status">
+    <column id="338" parent="281" name="product_status">
       <DasType>products_status|0s</DasType>
       <DefaultExpression>&apos;new&apos;::products_status</DefaultExpression>
       <Position>10</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29384</TypeId>
     </column>
-    <column id="341" parent="281" name="feedback">
+    <column id="339" parent="281" name="feedback">
       <DasType>jsonb|0s</DasType>
       <Position>11</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="342" parent="281" name="issuesCategories">
+    <column id="340" parent="281" name="issuesCategories">
       <DasType>jsonb|0s</DasType>
       <Position>12</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="343" parent="281" name="feedback_issues">
+    <column id="341" parent="281" name="feedback_issues">
       <DasType>integer|0s</DasType>
       <Position>13</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="344" parent="281" name="ai_correction">
+    <column id="342" parent="281" name="ai_correction">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <Position>14</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="345" parent="281" name="previous_data">
+    <column id="343" parent="281" name="previous_data">
       <DasType>jsonb|0s</DasType>
       <Position>15</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="346" parent="281" name="updated_by">
+    <column id="344" parent="281" name="updated_by">
       <DasType>text|0s</DasType>
       <Position>16</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="347" parent="281" name="handle">
+    <column id="345" parent="281" name="handle">
       <DasType>text|0s</DasType>
       <Position>17</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="348" parent="281" name="category_id">
+    <column id="346" parent="281" name="category_id">
       <DasType>text|0s</DasType>
       <Position>18</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="349" parent="281" name="category_name">
+    <column id="347" parent="281" name="category_name">
       <DasType>text|0s</DasType>
       <Position>19</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="350" parent="281" name="tags">
+    <column id="348" parent="281" name="tags">
       <DasType>jsonb|0s</DasType>
       <Position>20</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="351" parent="281" name="product_type">
+    <column id="349" parent="281" name="product_type">
       <DasType>text|0s</DasType>
       <Position>21</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="352" parent="281" name="featured_image">
+    <column id="350" parent="281" name="featured_image">
       <DasType>jsonb|0s</DasType>
       <Position>22</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <foreign-key id="353" parent="281" name="products_ibfk_1">
+    <foreign-key id="351" parent="281" name="products_ibfk_1">
       <ColNames>shop_id</ColNames>
       <ObjectId>29500</ObjectId>
       <OnDelete>cascade</OnDelete>
@@ -4882,7 +4853,7 @@ SUSPENDED</Labels>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>29443</RefTableId>
     </foreign-key>
-    <index id="354" parent="281" name="product_pkey">
+    <index id="352" parent="281" name="product_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29428</ObjectId>
@@ -4891,7 +4862,7 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="355" parent="281" name="product_shopify_id_key">
+    <index id="353" parent="281" name="product_shopify_id_key">
       <ColNames>shopify_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29483</ObjectId>
@@ -4902,20 +4873,20 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <index id="356" parent="281" name="products_shop_id_index">
+    <index id="354" parent="281" name="products_shop_id_index">
       <ColNames>shop_id</ColNames>
       <ObjectId>29484</ObjectId>
       <StateNumber>4326</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="357" parent="281" name="product_pkey">
+    <key id="355" parent="281" name="product_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29429</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4326</StateNumber>
       <UnderlyingIndexId>29428</UnderlyingIndexId>
     </key>
-    <column id="358" parent="282" name="id">
+    <column id="356" parent="282" name="id">
       <DasType>integer|0s</DasType>
       <DefaultExpression>nextval(&apos;&quot;productHistory_id_seq&quot;&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
@@ -4924,180 +4895,180 @@ SUSPENDED</Labels>
       <SequenceId>29430</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="359" parent="282" name="product_id">
+    <column id="357" parent="282" name="product_id">
       <DasType>integer|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="360" parent="282" name="shopify_id">
+    <column id="358" parent="282" name="shopify_id">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="361" parent="282" name="shop_id">
+    <column id="359" parent="282" name="shop_id">
       <DasType>integer|0s</DasType>
       <Position>4</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="362" parent="282" name="title">
+    <column id="360" parent="282" name="title">
       <DasType>text|0s</DasType>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="363" parent="282" name="description">
+    <column id="361" parent="282" name="description">
       <DasType>text|0s</DasType>
       <Position>6</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="364" parent="282" name="seo_title">
+    <column id="362" parent="282" name="seo_title">
       <DasType>text|0s</DasType>
       <Position>7</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="365" parent="282" name="seo_description">
+    <column id="363" parent="282" name="seo_description">
       <DasType>text|0s</DasType>
       <Position>8</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="366" parent="282" name="date_created">
+    <column id="364" parent="282" name="date_created">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>9</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="367" parent="282" name="last_checked">
+    <column id="365" parent="282" name="last_checked">
       <DasType>timestamp(3)|0s</DasType>
       <Position>10</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="368" parent="282" name="product_status">
+    <column id="366" parent="282" name="product_status">
       <DasType>products_status|0s</DasType>
       <DefaultExpression>&apos;new&apos;::products_status</DefaultExpression>
       <Position>11</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29384</TypeId>
     </column>
-    <column id="369" parent="282" name="feedback">
+    <column id="367" parent="282" name="feedback">
       <DasType>jsonb|0s</DasType>
       <Position>12</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="370" parent="282" name="issuesCategories">
+    <column id="368" parent="282" name="issuesCategories">
       <DasType>jsonb|0s</DasType>
       <Position>13</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="371" parent="282" name="feedback_issues">
+    <column id="369" parent="282" name="feedback_issues">
       <DasType>integer|0s</DasType>
       <Position>14</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="372" parent="282" name="ai_correction">
+    <column id="370" parent="282" name="ai_correction">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <Position>15</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="373" parent="282" name="updated_by">
+    <column id="371" parent="282" name="updated_by">
       <DasType>jsonb|0s</DasType>
       <Position>16</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="374" parent="282" name="handle">
+    <column id="372" parent="282" name="handle">
       <DasType>text|0s</DasType>
       <Position>17</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="375" parent="282" name="category_id">
+    <column id="373" parent="282" name="category_id">
       <DasType>text|0s</DasType>
       <Position>18</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="376" parent="282" name="category_name">
+    <column id="374" parent="282" name="category_name">
       <DasType>text|0s</DasType>
       <Position>19</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="377" parent="282" name="tags">
+    <column id="375" parent="282" name="tags">
       <DasType>jsonb|0s</DasType>
       <Position>20</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="378" parent="282" name="product_type">
+    <column id="376" parent="282" name="product_type">
       <DasType>text|0s</DasType>
       <Position>21</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="379" parent="282" name="featured_image">
+    <column id="377" parent="282" name="featured_image">
       <DasType>jsonb|0s</DasType>
       <Position>22</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="380" parent="282" name="newTitle">
+    <column id="378" parent="282" name="newTitle">
       <DasType>text|0s</DasType>
       <Position>23</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="381" parent="282" name="newDescription">
+    <column id="379" parent="282" name="newDescription">
       <DasType>text|0s</DasType>
       <Position>24</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="382" parent="282" name="newTags">
+    <column id="380" parent="282" name="newTags">
       <DasType>jsonb|0s</DasType>
       <Position>25</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>3802</TypeId>
     </column>
-    <column id="383" parent="282" name="newSeoTitle">
+    <column id="381" parent="282" name="newSeoTitle">
       <DasType>text|0s</DasType>
       <Position>26</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="384" parent="282" name="newCategoryName">
+    <column id="382" parent="282" name="newCategoryName">
       <DasType>text|0s</DasType>
       <Position>27</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="385" parent="282" name="newProductType">
+    <column id="383" parent="282" name="newProductType">
       <DasType>text|0s</DasType>
       <Position>28</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="386" parent="282" name="newSeoDescription">
+    <column id="384" parent="282" name="newSeoDescription">
       <DasType>text|0s</DasType>
       <Position>29</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <foreign-key id="387" parent="282" name="productHistory_product_id_fkey">
+    <foreign-key id="385" parent="282" name="productHistory_product_id_fkey">
       <ColNames>product_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29505</ObjectId>
@@ -5107,7 +5078,7 @@ SUSPENDED</Labels>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>29419</RefTableId>
     </foreign-key>
-    <index id="388" parent="282" name="productHistory_pkey">
+    <index id="386" parent="282" name="productHistory_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29440</ObjectId>
@@ -5116,41 +5087,41 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="389" parent="282" name="productHistory_product_id_index">
+    <index id="387" parent="282" name="productHistory_product_id_index">
       <ColNames>product_id</ColNames>
       <ObjectId>29485</ObjectId>
       <StateNumber>4326</StateNumber>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <key id="390" parent="282" name="productHistory_pkey">
+    <key id="388" parent="282" name="productHistory_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29441</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4326</StateNumber>
       <UnderlyingIndexId>29440</UnderlyingIndexId>
     </key>
-    <column id="391" parent="283" name="id">
+    <column id="389" parent="283" name="id">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="392" parent="283" name="shop">
+    <column id="390" parent="283" name="shop">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="393" parent="283" name="state">
+    <column id="391" parent="283" name="state">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="394" parent="283" name="isOnline">
+    <column id="392" parent="283" name="isOnline">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <NotNull>1</NotNull>
@@ -5158,50 +5129,50 @@ SUSPENDED</Labels>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="395" parent="283" name="scope">
+    <column id="393" parent="283" name="scope">
       <DasType>text|0s</DasType>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="396" parent="283" name="expires">
+    <column id="394" parent="283" name="expires">
       <DasType>timestamp(3)|0s</DasType>
       <Position>6</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="397" parent="283" name="accessToken">
+    <column id="395" parent="283" name="accessToken">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>7</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="398" parent="283" name="userId">
+    <column id="396" parent="283" name="userId">
       <DasType>bigint|0s</DasType>
       <Position>8</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>20</TypeId>
     </column>
-    <column id="399" parent="283" name="firstName">
+    <column id="397" parent="283" name="firstName">
       <DasType>text|0s</DasType>
       <Position>9</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="400" parent="283" name="lastName">
+    <column id="398" parent="283" name="lastName">
       <DasType>text|0s</DasType>
       <Position>10</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="401" parent="283" name="email">
+    <column id="399" parent="283" name="email">
       <DasType>text|0s</DasType>
       <Position>11</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="402" parent="283" name="accountOwner">
+    <column id="400" parent="283" name="accountOwner">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <NotNull>1</NotNull>
@@ -5209,27 +5180,27 @@ SUSPENDED</Labels>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="403" parent="283" name="locale">
+    <column id="401" parent="283" name="locale">
       <DasType>text|0s</DasType>
       <Position>13</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="404" parent="283" name="collaborator">
+    <column id="402" parent="283" name="collaborator">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <Position>14</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <column id="405" parent="283" name="emailVerified">
+    <column id="403" parent="283" name="emailVerified">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>false</DefaultExpression>
       <Position>15</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <index id="406" parent="283" name="session_pkey">
+    <index id="404" parent="283" name="session_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29478</ObjectId>
@@ -5241,14 +5212,14 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="407" parent="283" name="session_pkey">
+    <key id="405" parent="283" name="session_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29479</ObjectId>
       <Primary>1</Primary>
       <StateNumber>4326</StateNumber>
       <UnderlyingIndexId>29478</UnderlyingIndexId>
     </key>
-    <column id="408" parent="284" name="id">
+    <column id="406" parent="284" name="id">
       <DasType>integer|0s</DasType>
       <DefaultExpression>nextval(&apos;shops_id_seq&apos;::regclass)</DefaultExpression>
       <NotNull>1</NotNull>
@@ -5257,141 +5228,141 @@ SUSPENDED</Labels>
       <SequenceId>29442</SequenceId>
       <TypeId>23</TypeId>
     </column>
-    <column id="409" parent="284" name="shopify_shop_id">
+    <column id="407" parent="284" name="shopify_shop_id">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>2</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="410" parent="284" name="shop_name">
+    <column id="408" parent="284" name="shop_name">
       <DasType>text|0s</DasType>
       <NotNull>1</NotNull>
       <Position>3</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="411" parent="284" name="owner_name">
+    <column id="409" parent="284" name="owner_name">
       <DasType>text|0s</DasType>
       <Position>4</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="412" parent="284" name="email">
+    <column id="410" parent="284" name="email">
       <DasType>text|0s</DasType>
       <Position>5</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="413" parent="284" name="planId">
+    <column id="411" parent="284" name="planId">
       <DasType>integer|0s</DasType>
       <NotNull>1</NotNull>
       <Position>6</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="414" parent="284" name="api_access_token">
+    <column id="412" parent="284" name="api_access_token">
       <DasType>text|0s</DasType>
       <Position>7</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="415" parent="284" name="store_currency">
+    <column id="413" parent="284" name="store_currency">
       <DasType>text|0s</DasType>
       <Position>8</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="416" parent="284" name="store_locale">
+    <column id="414" parent="284" name="store_locale">
       <DasType>text|0s</DasType>
       <Position>9</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="417" parent="284" name="date_added">
+    <column id="415" parent="284" name="date_added">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>10</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="418" parent="284" name="last_sync">
+    <column id="416" parent="284" name="last_sync">
       <DasType>timestamp(3)|0s</DasType>
       <Position>11</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="419" parent="284" name="status">
+    <column id="417" parent="284" name="status">
       <DasType>shops_status|0s</DasType>
       <DefaultExpression>&apos;ACTIVE&apos;::shops_status</DefaultExpression>
       <Position>12</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29338</TypeId>
     </column>
-    <column id="420" parent="284" name="notes">
+    <column id="418" parent="284" name="notes">
       <DasType>text|0s</DasType>
       <Position>13</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="421" parent="284" name="created_at">
+    <column id="419" parent="284" name="created_at">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>14</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="422" parent="284" name="updated_at">
+    <column id="420" parent="284" name="updated_at">
       <DasType>timestamp(3)|0s</DasType>
       <DefaultExpression>CURRENT_TIMESTAMP</DefaultExpression>
       <Position>15</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="423" parent="284" name="shop_url">
+    <column id="421" parent="284" name="shop_url">
       <DasType>text|0s</DasType>
       <Position>16</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="424" parent="284" name="total_products">
+    <column id="422" parent="284" name="total_products">
       <DasType>integer|0s</DasType>
       <DefaultExpression>0</DefaultExpression>
       <Position>17</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="425" parent="284" name="country">
+    <column id="423" parent="284" name="country">
       <DasType>text|0s</DasType>
       <Position>18</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="426" parent="284" name="timezone">
+    <column id="424" parent="284" name="timezone">
       <DasType>text|0s</DasType>
       <Position>19</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="427" parent="284" name="subscription_renewal_date">
+    <column id="425" parent="284" name="subscription_renewal_date">
       <DasType>timestamp(3)|0s</DasType>
       <Position>20</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>1114</TypeId>
     </column>
-    <column id="428" parent="284" name="preferred_contact_method">
+    <column id="426" parent="284" name="preferred_contact_method">
       <DasType>shops_preferred_contact_method|0s</DasType>
       <Position>21</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>29346</TypeId>
     </column>
-    <column id="429" parent="284" name="phone">
+    <column id="427" parent="284" name="phone">
       <DasType>text|0s</DasType>
       <Position>22</Position>
       <StateNumber>4326</StateNumber>
       <TypeId>25</TypeId>
     </column>
-    <column id="430" parent="284" name="credit">
+    <column id="428" parent="284" name="credit">
       <DasType>integer|0s</DasType>
       <DefaultExpression>100</DefaultExpression>
       <NotNull>1</NotNull>
@@ -5399,7 +5370,7 @@ SUSPENDED</Labels>
       <StateNumber>4326</StateNumber>
       <TypeId>23</TypeId>
     </column>
-    <column id="431" parent="284" name="needResync">
+    <column id="429" parent="284" name="needResync">
       <DasType>boolean|0s</DasType>
       <DefaultExpression>true</DefaultExpression>
       <NotNull>1</NotNull>
@@ -5407,7 +5378,7 @@ SUSPENDED</Labels>
       <StateNumber>4334</StateNumber>
       <TypeId>16</TypeId>
     </column>
-    <foreign-key id="432" parent="284" name="shops_planId_fkey">
+    <foreign-key id="430" parent="284" name="shops_planId_fkey">
       <ColNames>planId</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29528</ObjectId>
@@ -5417,7 +5388,7 @@ SUSPENDED</Labels>
       <RefKeyColPositions>1</RefKeyColPositions>
       <RefTableId>29517</RefTableId>
     </foreign-key>
-    <index id="433" parent="284" name="shops_pkey">
+    <index id="431" parent="284" name="shops_pkey">
       <ColNames>id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29455</ObjectId>
@@ -5426,7 +5397,7 @@ SUSPENDED</Labels>
       <Unique>1</Unique>
       <AccessMethodId>403</AccessMethodId>
     </index>
-    <index id="434" parent="284" name="shops_shopify_shop_id_key">
+    <index id="432" parent="284" name="shops_shopify_shop_id_key">
       <ColNames>shopify_shop_id</ColNames>
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29486</ObjectId>
@@ -5437,7 +5408,7 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <index id="435" parent="284" name="shops_shopify_shop_id_index">
+    <index id="433" parent="284" name="shops_shopify_shop_id_index">
       <ColNames>shopify_shop_id</ColNames>
       <ObjectId>29487</ObjectId>
       <StateNumber>4326</StateNumber>
@@ -5446,7 +5417,7 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <index id="436" parent="284" name="shops_email_index">
+    <index id="434" parent="284" name="shops_email_index">
       <ColNames>email</ColNames>
       <ObjectId>29488</ObjectId>
       <StateNumber>4326</StateNumber>
@@ -5455,7 +5426,7 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <index id="437" parent="284" name="shops_shop_url_index">
+    <index id="435" parent="284" name="shops_shop_url_index">
       <ColNames>shop_url</ColNames>
       <ObjectId>29489</ObjectId>
       <StateNumber>4326</StateNumber>
@@ -5464,7 +5435,7 @@ SUSPENDED</Labels>
       <CollationIds>100</CollationIds>
       <CollationParentNames>pg_catalog</CollationParentNames>
     </index>
-    <key id="438" parent="284" name="shops_pkey">
+    <key id="436" parent="284" name="shops_pkey">
       <NameSurrogate>1</NameSurrogate>
       <ObjectId>29456</ObjectId>
       <Primary>1</Primary>

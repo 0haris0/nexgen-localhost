@@ -2,19 +2,10 @@ import { useShop } from "../utils/ShopContext";
 // Converted to TypeScript
 import React, { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import {
-  BlockStack,
-  Button,
-  Card,
-  Layout,
-  List,
-  Page,
-  Text,
-} from "@shopify/polaris";
+import { BlockStack, Button, Card, Layout, Page, Text } from "@shopify/polaris";
 import { authenticate } from "../shopify.server.js";
 
 import ErrorBlock from "../components/errorBlock.js";
-import IssueListChart from "../components/issueListChart.js";
 import { ChartVerticalFilledIcon } from "@shopify/polaris-icons";
 import moment from "moment";
 import { fetchShopQuery } from "../utils/shopData.js";
@@ -26,6 +17,9 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import type { shops } from "@prisma/client";
 import type { ActiveSubscriptions } from "@shopify/shopify-api";
 import type { Issue, Store } from "../globals";
+/*New imports*/
+import { InsightsSection } from "../components/insights_section";
+import { IssueListCharts } from "../components/issue_list_charts";
 
 // Loader Function
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -61,14 +55,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       storeData.productNumber > 0 &&
       !storeData.shop.needResync
     ) {
+      //analiza
       const issuesSeverity = await countIssues(storeData.shop.id);
+      console.log(issuesSeverity, "issuesSeverity");
       const issuesCatSum = await categoryValuesSum(storeData.shop.id);
+      console.log(issuesCatSum, "issuesCatSum");
       issues = [];
+      //spremanje
       if (issuesSeverity.success && Array.isArray(issuesSeverity.data)) {
         issues = issuesSeverity.data.map((issue) => ({
-          dataValue: issue._count?._all ?? 0,
+          dataValue: issue._count ?? 0,
           dataTitle: issue.feedback_issues ?? "Unknown",
         }));
+        console.log(issues, "issues");
       } else {
         console.warn("No issues data returned:", issuesSeverity.error);
         issues = [];
@@ -100,8 +99,6 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 // Action Function
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
-
-
   try {
     // Fetch products data
     const productsData = await fetchProductsQuery(admin);
@@ -243,87 +240,3 @@ export default function Index() {
     </Page>
   );
 }
-
-// Subcomponents
-function IssueListCharts({
-                           issues,
-                           issuesCat,
-                         }: {
-  issues: Issue[];
-  issuesCat: Issue[];
-}) {
-  return (
-    <Card padding="600">
-      <BlockStack gap="300" align="center">
-        <Text as="span" variant={"headingMd"}>
-          Analyze result
-        </Text>
-        <Card roundedAbove="lg" padding="600">
-          <IssueListChart
-            chartData={issues}
-            gradient={true}
-            title="Number of issues per product"
-          />
-        </Card>
-        <Card>
-          <IssueListChart
-            chartData={issuesCat}
-            title="Number of issues in shop"
-          />
-        </Card>
-      </BlockStack>
-    </Card>
-  );
-}
-
-/*
-function exportButton() {
-  return (
-    <>
-      <Button
-        onClick={() => {
-          const file = this.fetcher.load("/export-csv");
-        }}
-      >
-        Export CSV
-      </Button>
-      <Button
-        onClick={() => {
-          window.location.href = "/export-excel";
-        }}
-      >
-        Export excel
-      </Button>
-      ;
-    </>
-  );
-}
-*/
-function InsightsSection() {
-  return (
-    <BlockStack gap="200">
-      <Card>
-        <Text as="h2" variant="headingMd">
-          Shop Performance Insights
-        </Text>
-        <List type="bullet">
-          <List.Item>
-            Average product view increased by <b>25%</b> with SEO improvements.
-          </List.Item>
-          <List.Item>
-            Optimized descriptions led to a <b>20%</b> boost in conversion
-            rates.
-          </List.Item>
-          <List.Item>
-            Better categorization reduced bounce rates by <b>15%</b>.
-          </List.Item>
-          <List.Item>
-            Inventory tracking reduced <b>out-of-stock</b> incidents, improving
-            satisfaction.
-          </List.Item>
-        </List>
-      </Card>
-    </BlockStack>
-  );
-}
-

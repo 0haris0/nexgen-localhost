@@ -242,7 +242,7 @@ export default function ReviewEnhancements() {
   const enhanceProductWithAI = async (singleProduct: product) => {
     let enhancedProduct = singleProduct;
     setEnhanceButtonLoading(true);
-  
+
     if (shop.credit < 100) {
       shopify.toast.show("You don't have enough credit for this action");
       setEnhanceButtonLoading(false);

@@ -9,7 +9,7 @@ interface ShopContextType {
 
 const ShopContext = createContext<ShopContextType>({
   storeMainData: {} as Store,
-  setStoreMainData: () => { },
+  setStoreMainData: () => {},
 });
 
 // Custom hook to use the ShopContext
@@ -23,8 +23,6 @@ import { shops } from "@prisma/client";
 interface ShopProviderProps {
   children: ReactNode;
 }
-
-
 
 export const ShopProvider = ({ children }: ShopProviderProps) => {
   const [storeMainData, setStoreMainData] = useState<Store>({

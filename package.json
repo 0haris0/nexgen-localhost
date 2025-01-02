@@ -16,7 +16,8 @@
     "shopify": "shopify",
     "prisma": "prisma",
     "graphql-codegen": "graphql-codegen",
-    "vite": "vite"
+    "vite": "vite",
+    "typecheck": "tsc --noEmit"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

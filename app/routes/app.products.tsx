@@ -12,6 +12,7 @@ import {
   Layout,
   Modal,
   Page,
+  RangeSlider,
   Text,
   Tooltip,
   useIndexResourceState,
@@ -88,7 +89,7 @@ export const loader = async ({
     };
     const response = await getProductsByShopId({
       shop_id: shopIdDB,
-      options: options as OptionsType,
+      options: options,
     });
     const { result, totalCount } = response;
     const countIssuesRes = await countIssues(shopIdDB);
@@ -180,7 +181,10 @@ export default function AppProducts() {
   const [sortSelected, setSortSelected] = useState(["feedback_issues desc"]);
   const { mode, setMode } = useSetIndexFiltersMode();
 
-  const [itemStrings, setItemStrings] = useState(["All", "Selected products"]);
+  const [itemStrings, setItemStrings] = useState([
+    "All products",
+    "Selected products",
+  ]);
   const [loadingTable, setLoadingTable] = useState(false);
   const navigate = useNavigate();
   const { storeMainData } = useShop();
@@ -274,7 +278,11 @@ export default function AppProducts() {
     setCurrentPage(1);
   };
 
-  const sortOptions = [
+  const sortOptions: {
+    label: string;
+    value: `${string} desc` | `${string} asc`;
+    directionLabel: string;
+  }[] = [
     {
       label: "Title",
       value: "title asc",
@@ -314,74 +322,90 @@ export default function AppProducts() {
   };
 
   const filters: FilterInterface[] = [
-    /*
     {
-      key: "test",
-      label: "test",
-    },
-    {
-      key: "accountStatus",
-      label: "Account status",
-      filter: (
-        <ChoiceList
-          title="Account status"
-          titleHidden
-          choices={[
-            {
-              label: "Enabled",
-              value: "enabled",
-            },
-            {
-              label: "Not invited",
-              value: "not invited",
-            },
-            {
-              label: "Invited",
-              value: "invited",
-            },
-            {
-              label: "Declined",
-              value: "declined",
-            },
-          ]}
-          selected={accountStatus || []}
-          onChange={handleAccountStatusChange}
-          allowMultiple
-        />
-      ),
-      shortcut: true,
-    },
-    {
-      key: "taggedWith",
-      label: "Tagged with",
-      filter: (
-        <TextField
-          label="Tagged with"
-          value={taggedWith}
-          onChange={handleTaggedWithChange}
-          autoComplete="off"
-          labelHidden
-        />
-      ),
-      shortcut: true,
-    },
-    {
-      key: "moneySpent",
-      label: "Money spent",
+      key: "notEnhancedProducts",
+      label: "Not enhanced products",
       filter: (
         <RangeSlider
-          label="Money spent is between"
-          labelHidden
-          value={moneySpent || [0, 500]}
-          prefix="$"
-          output
-          min={0}
-          max={2000}
+          label={"Number of issues"}
+          value={1}
+          onChange={(value) => console.log(value)}
+          output={true}
           step={1}
-          onChange={handleMoneySpentChange}
+          min={0}
+          max={10}
         />
       ),
-    },*/
+      shortcut: true,
+      pinned: true,
+      section: "Product status",
+      suffix: "issues",
+      hidden: true,
+    },
+    /*
+      {
+        key: "accountStatus",
+        label: "Account status",
+        filter: (
+          <ChoiceList
+            title="Account status"
+            titleHidden
+            choices={[
+              {
+                label: "Enabled",
+                value: "enabled",
+              },
+              {
+                label: "Not invited",
+                value: "not invited",
+              },
+              {
+                label: "Invited",
+                value: "invited",
+              },
+              {
+                label: "Declined",
+                value: "declined",
+              },
+            ]}
+            selected={accountStatus || []}
+            onChange={handleAccountStatusChange}
+            allowMultiple
+          />
+        ),
+        shortcut: true,
+      },
+      {
+        key: "taggedWith",
+        label: "Tagged with",
+        filter: (
+          <TextField
+            label="Tagged with"
+            value={taggedWith}
+            onChange={handleTaggedWithChange}
+            autoComplete="off"
+            labelHidden
+          />
+        ),
+        shortcut: true,
+      },
+      {
+        key: "moneySpent",
+        label: "Money spent",
+        filter: (
+          <RangeSlider
+            label="Money spent is between"
+            labelHidden
+            value={moneySpent || [0, 500]}
+            prefix="$"
+            output
+            min={0}
+            max={2000}
+            step={1}
+            onChange={handleMoneySpentChange}
+          />
+        ),
+      },*/
   ];
   const tabs = itemStrings.map((item, index) => ({
     content: item,
@@ -391,45 +415,56 @@ export default function AppProducts() {
     },
     id: `${item}-${index}`,
     isLocked: index === 0,
+    accessibilityLabel: item,
 
-    /*
     actions:
       index === 0
         ? []
         : [
             {
-              type: "rename",
-              onAction: () => {},
-              onPrimaryAction: async (value) => {
-                const newItemsStrings = tabs.map((item, idx) => {
-                  if (idx === index) {
-                    return value;
-                  }
-                  return item.content;
-                });
-                setItemStrings(newItemsStrings);
-                return true;
-              },
-            },
-          ]
-            {
-              type: "duplicate",
-              onPrimaryAction: async (value) => {
-                return true;
-              },
-            },
-            {
-              type: "edit",
-            },
-            {
               type: "delete",
-              onPrimaryAction: async () => {
-                return true;
+              onAction: async () => {
+                console.log(index);
               },
             },
-          ],*/
+          ],
+    /*
+      actions:
+        index === 0
+          ? []
+          : [
+              {
+                type: "rename",
+                onAction: () => {},
+                onPrimaryAction: async (value) => {
+                  const newItemsStrings = tabs.map((item, idx) => {
+                    if (idx === index) {
+                      return value;
+                    }
+                    return item.content;
+                  });
+                  setItemStrings(newItemsStrings);
+                  return true;
+                },
+              },
+            ]
+              {
+                type: "duplicate",
+                onPrimaryAction: async (value) => {
+                  return true;
+                },
+              },
+              {
+                type: "edit",
+              },
+              {
+                type: "delete",
+                onPrimaryAction: async () => {
+                  return true;
+                },
+              },
+            ],*/
   }));
-
   const handleQueryValueRemove = useCallback(
     () => setSearchTerm(""),
     [searchTerm],
@@ -519,7 +554,12 @@ export default function AppProducts() {
                 }}
                 selectable
                 onSelectionChange={handleSelectionChange}
-                headings={[{ title: "Title" }, { title: "Issues" }]}
+                headings={[
+                  { title: "Title" },
+                  { title: "Number of issues" },
+                  { title: "Issues", alignment: "center", flush: true },
+                  { title: "Actions", alignment: "center" },
+                ]}
                 selectedItemsCount={selectedResources.length || 0}
                 itemCount={data ? data.length : 0}
                 loading={loadingTable}
@@ -544,7 +584,7 @@ export default function AppProducts() {
             </BlockStack>
           </Card>
         </Layout.Section>
-        <Layout.Section variant={"oneThird"}>
+        <Layout.Section variant={"fullWidth"}>
           <Card>
             <BlockStack gap="200" align={"center"}>
               {selectedData && selectedData.length > 0 ? (

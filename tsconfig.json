@@ -18,8 +18,9 @@
     "baseUrl": ".",
     "types": [
       "node",
-      "@shopify/app-bridge-types"
-    ],
-
+      "@shopify/app-bridge-types",
+      "@remix-run/node",
+      "vite/client"
+    ]
   }
 }

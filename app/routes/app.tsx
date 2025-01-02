@@ -1,21 +1,21 @@
 // Converted to TypeScript
-import React, {useEffect} from 'react';
-import { Outlet, useLoaderData, useRouteError } from '@remix-run/react';
-import { boundary } from '@shopify/shopify-app-remix/server';
-import { AppProvider } from '@shopify/shopify-app-remix/react';
-import { NavMenu } from '@shopify/app-bridge-react';
-import polarisStyles from '@shopify/polaris/build/esm/styles.css?url';
-import { authenticate } from '../shopify.server';
-import { ShopProvider, useShop } from '../utils/ShopContext.js';
-import { Analytics } from '@vercel/analytics/remix';
-import { SpeedInsights } from '@vercel/speed-insights/remix';
+import React, { useEffect } from "react";
+import { Outlet, useLoaderData, useRouteError } from "@remix-run/react";
+import { boundary } from "@shopify/shopify-app-remix/server";
+import { AppProvider } from "@shopify/shopify-app-remix/react";
+import { NavMenu } from "@shopify/app-bridge-react";
+import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { authenticate } from "../shopify.server";
+import { ShopProvider, useShop } from "../utils/ShopContext.js";
+import { Analytics } from "@vercel/analytics/remix";
+import { SpeedInsights } from "@vercel/speed-insights/remix";
 import type { LoaderFunctionArgs } from "@remix-run/node";
-import { fetchShopQuery } from '../utils/shopData';
-import { handleErrorResponse } from '../utils/errorHandler';
-import { countProductsByShopID } from '../models/products';
-import type { Store } from '../globals';
-import { shops } from '@prisma/client';
-import { ActiveSubscriptions } from '@shopify/shopify-api';
+import { fetchShopQuery } from "../utils/shopData";
+import { handleErrorResponse } from "../utils/errorHandler";
+import { countProductsByShopID } from "../models/products";
+import type { Store } from "../globals";
+import { shops } from "@prisma/client";
+import { ActiveSubscriptions } from "@shopify/shopify-api";
 
 // Remix will automatically handle the routes based on the file structure
 
@@ -27,7 +27,7 @@ export const config = {
 
 export const links = () => [
   {
-    rel: 'stylesheet',
+    rel: "stylesheet",
     href: polarisStyles,
   },
 ];
@@ -57,19 +57,19 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
   return {
     apiKey: process.env.SHOPIFY_API_KEY || "",
-    storeData
+    storeData,
   };
 };
 
 export default function App() {
   const { apiKey, storeData: initialStoreData } = useLoaderData() as {
-    apiKey: string,
-    storeData: Store
+    apiKey: string;
+    storeData: Store;
   };
   const { storeMainData, setStoreMainData } = useShop();
 
   useEffect(() => {
-    if(initialStoreData){
+    if (initialStoreData) {
       console.log(initialStoreData, "initialStoreData");
       setStoreMainData(initialStoreData);
     }

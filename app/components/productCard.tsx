@@ -11,7 +11,11 @@ import {
   Tooltip,
 } from "@shopify/polaris";
 
-export default function ProductCard({ product, removeSelectedProduct, shopUrl }) {
+export default function ProductCard({
+  product,
+  removeSelectedProduct,
+  shopUrl,
+}) {
   return (
     <Box
       key={product.id}
