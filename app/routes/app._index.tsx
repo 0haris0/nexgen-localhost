@@ -1,25 +1,29 @@
-import { useShop } from "../utils/ShopContext";
-// Converted to TypeScript
+// Organize imports by type
+// 1. React and framework imports
 import React, { useEffect, useState } from "react";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { BlockStack, Button, Card, Layout, Page, Text } from "@shopify/polaris";
-import { authenticate } from "../shopify.server.js";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 
-import ErrorBlock from "../components/errorBlock.js";
+// 2. Third-party imports
+import { BlockStack, Button, Card, Layout, Page, Text } from "@shopify/polaris";
 import { ChartVerticalFilledIcon } from "@shopify/polaris-icons";
 import moment from "moment";
-import { fetchShopQuery } from "../utils/shopData.js";
-import { handleErrorResponse } from "../utils/errorHandler.js";
-import { fetchProductsQuery } from "../utils/productUtils.js";
-import { countIssues, countProductsByShopID } from "../models/products.js";
-import { categoryValuesSum } from "../models/issue.js";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import type { shops } from "@prisma/client";
 import type { ActiveSubscriptions } from "@shopify/shopify-api";
+
+// 3. Local imports
+import { useShop } from "../utils/ShopContext";
+import { authenticate } from "../shopify.server";
+import { fetchShopQuery } from "../utils/shopData";
+import { handleErrorResponse } from "../utils/errorHandler";
+import { fetchProductsQuery } from "../utils/productUtils";
+import { countIssues, countProductsByShopID } from "../models/products";
+import { categoryValuesSum } from "../models/issue";
 import type { Issue, Store } from "../globals";
-/*New imports*/
 import { InsightsSection } from "../components/insights_section";
 import { IssueListCharts } from "../components/issue_list_charts";
+import ErrorBlock from "../components/errorBlock";
+
 
 // Loader Function
 export const loader = async ({ request }: LoaderFunctionArgs) => {

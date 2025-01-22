@@ -1,4 +1,3 @@
-// Converted to TypeScript
 import React, { useEffect, useReducer, useState } from "react";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import {
@@ -35,8 +34,6 @@ import updateProduct from "../utils/productUtils.js";
 import { fetchShopQuery } from "../utils/shopData.js";
 import { handleErrorResponse } from "../utils/errorHandler.js";
 import { generateProductData } from "../models/ai.js";
-import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
-import type { product } from "@prisma/client";
 
 interface ProductState {
   products: product[];

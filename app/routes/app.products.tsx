@@ -1,4 +1,3 @@
-// Converted to TypeScript
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { authenticate } from "../shopify.server.js";
 import type { FilterInterface } from "@shopify/polaris";
@@ -25,7 +24,7 @@ import {
   useSearchParams,
 } from "@remix-run/react";
 import {
-  countIssues,
+  countIssuesStatus,
   getProductsById,
   getProductsByShopId,
   updateAiCorrection,
@@ -51,15 +50,16 @@ type OptionsType = {
 };
 
 type LoaderResponseType = {
-  data: any[]; // Adjust based on the product data type
-  shop: shops; // Adjust fields as needed
+  data: product[];
+  shop: shops;
   count: number;
-  issueDropDown: number[]; // Array of issue counts
+  issueDropDown: number[];
   options: OptionsType;
   error?: string;
 };
 
 // Loader function
+
 export const loader = async ({
   request,
 }: LoaderFunctionArgs): Promise<
@@ -205,34 +205,25 @@ export default function AppProducts() {
         };
 
   useEffect(() => {
-    if (fetcher.state === "idle") {
-      setLoadingTable(false);
-    } else if (fetcher.state === "loading" || fetcher.state === "submitting") {
-      setLoadingTable(true);
-    }
-  }, [fetcher.state, data]);
+    setLoadingTable(fetcher.state !== "idle");
+  }, [fetcher.state]);
 
   useEffect(() => {
-    // Use fetcher.load instead of submit to refresh data based on URL params
     const params = new URLSearchParams({
-      page: currentPage?.toString() || "1",
-      display: display?.toString() || "25",
-      order_by: orderBy || "feedback_issue", // default fallback value
-      sort: sort || "asc",
+      page: currentPage.toString(),
+      display: display.toString(),
+      order_by: orderBy,
+      sort: sort,
       searchTerm: searchTerm || "",
-      selected: selected?.toString() || "0",
+      selected: selected.toString(),
     });
-
     setLoadingTable(true);
     fetcher.load(`/?${params.toString()}`);
-  }, [currentPage, display, orderBy, selected, sortSelected, searchTerm]);
-
+  }, [currentPage, display, orderBy, selected, sort, searchTerm]);
   const selectedData = useMemo(
     () =>
       data
-        ? data.filter((product) =>
-            selectedResources.includes(product.id.toString()),
-          )
+        ? data.filter((product) => selectedResources.includes(product.id))
         : [],
     [selectedResources, data],
   );
@@ -435,7 +426,6 @@ export default function AppProducts() {
           : [
               {
                 type: "rename",
-                onAction: () => {},
                 onPrimaryAction: async (value) => {
                   const newItemsStrings = tabs.map((item, idx) => {
                     if (idx === index) {

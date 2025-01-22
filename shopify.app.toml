@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "e0ca33cf902315426479ef62e16cf227"
-application_url = "https://principle-cancel-ol-priorities.trycloudflare.com"
+application_url = "https://neighbors-antivirus-flower-acc.trycloudflare.com"
 embedded = true
 name = "nexgen-localhost"
 handle = "nexgen-localhost"
@@ -24,9 +24,9 @@ scopes = "read_analytics,read_inventory,read_orders,read_pixels,read_product_fee
 
 [auth]
 redirect_urls = [
-  "https://principle-cancel-ol-priorities.trycloudflare.com/auth/callback",
-  "https://principle-cancel-ol-priorities.trycloudflare.com/auth/shopify/callback",
-  "https://principle-cancel-ol-priorities.trycloudflare.com/api/auth/callback"
+  "https://neighbors-antivirus-flower-acc.trycloudflare.com/auth/callback",
+  "https://neighbors-antivirus-flower-acc.trycloudflare.com/auth/shopify/callback",
+  "https://neighbors-antivirus-flower-acc.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

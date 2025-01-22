@@ -280,54 +280,6 @@ type CountIssuesResult = {
   error?: string;
 };
 
-export async function countIssues(shop_id: number): Promise<CountIssuesResult> {
-  // Validate input
-  if (!shop_id) {
-    throw new Error("Shop ID is required to count issues.");
-  }
-
-  try {
-    const result = await dbServer.product.groupBy({
-      by: ["feedback_issues"], // Group by feedback issues
-      where: { shop_id }, // Filter by the provided shop ID
-      _count: {
-        _all: true, // Count all products within each feedback issues group
-      },
-      orderBy: {
-        feedback_issues: "desc", // Order by feedback issues in descending order
-      },
-    });
-
-    // Ensure feedback_issues is of type string | null
-    const formattedResult = result.map((item) => ({
-      feedback_issues: item.feedback_issues?.toString() || null,
-      _count: item._count._all,
-    }));
-    await saveNewIssues({
-      shop_id: shop_id,
-      type: "issues",
-      issues: formattedResult,
-    });
-    return {
-      success: true,
-      data: formattedResult,
-    };
-  } catch (error) {
-    if (error instanceof Error) {
-      return {
-        success: false,
-        data: [],
-        error: error.message,
-      };
-    } else {
-      return {
-        success: false,
-        data: [],
-        error: "An error occurred while counting issues.",
-      };
-    }
-  }
-}
 
 export async function saveNewIssues({
   shop_id,
