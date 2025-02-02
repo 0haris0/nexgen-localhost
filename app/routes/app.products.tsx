@@ -24,6 +24,7 @@ import {
   useSearchParams,
 } from "@remix-run/react";
 import {
+  countIssues,
   countIssuesStatus,
   getProductsById,
   getProductsByShopId,

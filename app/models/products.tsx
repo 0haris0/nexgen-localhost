@@ -1,26 +1,8 @@
-import type { Prisma, productHistory } from "@prisma/client"; // Ensure Prisma types are imported
+import type { Prisma, product, productHistory } from "@prisma/client"; // Ensure Prisma types are imported
 import dbServer from "../db.server"; // Ensure this is the proper dbServer import
 import { handleApiError } from "../utils/handleApiError";
-import type { Scalars } from "../types/admin.types";
 
-export async function saveProduct(product: {
-  category_name: string | undefined;
-  date_created: Date;
-  description: string;
-  handle: string;
-  feedback_issues: number;
-  title: string;
-  featured_image: { url: any };
-  seo_title: string | null | undefined;
-  tags: Array<Scalars["String"]["output"]>;
-  feedback: Array<{ feedback: any }>;
-  shop_id: number;
-  product_type: string;
-  category_id: string | undefined;
-  last_checked: Date;
-  seo_description: string | null | undefined;
-  shopify_id: string;
-}) {
+export async function saveProduct(product: product) {
   if (!product.shopify_id) {
     throw new Error("shopify_id must not be null or undefined");
   }
@@ -280,6 +262,54 @@ type CountIssuesResult = {
   error?: string;
 };
 
+export async function countIssues(shop_id: number): Promise<CountIssuesResult> {
+  // Validate input
+  if (!shop_id) {
+    throw new Error("Shop ID is required to count issues.");
+  }
+
+  try {
+    const result = await dbServer.product.groupBy({
+      by: ["feedback_issues"], // Group by feedback issues
+      where: { shop_id }, // Filter by the provided shop ID
+      _count: {
+        _all: true, // Count all products within each feedback issues group
+      },
+      orderBy: {
+        feedback_issues: "desc", // Order by feedback issues in descending order
+      },
+    });
+
+    // Ensure feedback_issues is of type string | null
+    const formattedResult = result.map((item) => ({
+      feedback_issues: item.feedback_issues?.toString() || null,
+      _count: item._count._all,
+    }));
+    await saveNewIssues({
+      shop_id: shop_id,
+      type: "issues",
+      issues: formattedResult,
+    });
+    return {
+      success: true,
+      data: formattedResult,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      return {
+        success: false,
+        data: [],
+        error: error.message,
+      };
+    } else {
+      return {
+        success: false,
+        data: [],
+        error: "An error occurred while counting issues.",
+      };
+    }
+  }
+}
 
 export async function saveNewIssues({
   shop_id,
@@ -304,22 +334,6 @@ export async function saveNewIssues({
   }
 }
 
-export async function updateAiCorrection(
-  productIds: Array<number>,
-  status: boolean,
-) {
-  if (!Array.isArray(productIds)) {
-    throw new Error("Not array");
-  }
-  return dbServer.product.updateMany({
-    where: {
-      id: { in: productIds }, // Use 'in' for multiple IDs
-    },
-    data: {
-      ai_correction: status,
-    },
-  }); // Return the results of the update operation
-}
 
 export async function getProductsForExport() {
   const products = await dbServer.product.findMany();

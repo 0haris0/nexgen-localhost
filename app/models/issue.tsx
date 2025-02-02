@@ -2,20 +2,14 @@ import dbServer from "../db.server";
 
 export const saveIssue = (
   shop_id: number,
-  issuesCount: issueCount,
-  product_id: number,
-  shopify_product_id: string,
+  issuesCount: number,
+  issuesType: string,
 ) => {
-  const result = dbServer.issues.upsert({
-    where: { product_id },
-    update: {
-      issuesCount,
-    },
-    create: {
+  const result = dbServer.issues.create({
+    data: {
       shop_id,
       issuesCount,
-      product_id,
-      shopify_product_id,
+      issuesType
     },
   });
   return result;

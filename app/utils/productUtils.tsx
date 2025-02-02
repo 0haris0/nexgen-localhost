@@ -403,7 +403,7 @@ export const fetchProductsQuery = async (admin: any) => {
       });
 
       // Save product issues in the database
-      await saveIssue(shopIdVal, issueCount, newProduct.id, product.id);
+      await saveIssue(shopIdVal, issueCount, "issues");
 
       // Update last sync time for this product
       await lastSync(shopIdVal, shopifyId);
